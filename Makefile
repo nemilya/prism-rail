@@ -8,15 +8,15 @@ LANGS ?=
 SIZE ?= 720
 S = video/scripts
 
-.PHONY: help install play test voice sound video stills subs poster clean-out
+.PHONY: help install play test voice sound video web stills subs poster clean-out
 
 help:  ## список целей
 	@grep -hE '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed 's/:.*## /\t/'
 	@echo
-	@echo 'Какой ролик — FILM=<id> (обязателен для voice, sound, video, stills, subs, poster):'
+	@echo 'Какой ролик — FILM=<id> (обязателен для voice, sound, video, web, stills, subs, poster):'
 	@node -e "import('./video/films/index.js').then(m=>m.default.forEach(f=>console.log('  FILM='+f.id+'\t'+f.title)))"
 	@echo
-	@echo 'Пример: make stills FILM=refraction T=5,40,90 && make voice FILM=refraction && make video FILM=refraction'
+	@echo 'Пример: make stills FILM=refraction T=5,40,90 && make voice FILM=refraction && make video FILM=refraction \&\& make web FILM=refraction'
 
 install:  ## Playwright, Chromium и локальные копии three.js и Tone.js (в video/node_modules)
 	cd video && npm install --no-audit --no-fund && npx playwright install chromium
@@ -35,6 +35,9 @@ sound:  ## черновик музыки и звуков без голоса →
 
 video:  ## MP4 со звуком → out/<id>/ (FILM=<id>; SIZE=720|1080)
 	@node $(S)/video-render.mjs $(FILM) $(LANGS) --size $(SIZE)
+
+web:  ## лёгкая версия для сайта → out/<id>/web/<id>-<lang>.{mp4,jpg,vtt} (720p, CRF 28; CRF=31 HEIGHT=540 — легче)
+	@node $(S)/web.mjs $(FILM) $(LANGS) $(if $(CRF),--crf $(CRF)) $(if $(HEIGHT),--height $(HEIGHT))
 
 stills:  ## пробные кадры + контактный лист → out/<id>/still-*-sheet.png (FILM=<id> T=10,40,95)
 	@node $(S)/video-render.mjs $(FILM) $(LANGS) --size $(SIZE) --stills "$(T)"

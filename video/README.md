@@ -16,6 +16,7 @@ make stills FILM=refraction T=5,40,90     # пробные кадры + конт
 make voice FILM=refraction                # озвучка (нужен OPENROUTER_API_KEY) + музыка и звуки → films/refraction/voice/ru.m4a
 make video FILM=refraction                # MP4 1280×720 со звуком → out/refraction/refraction-ru-16x9-720p.mp4
 make video FILM=refraction SIZE=1080      # 1920×1080
+make web FILM=refraction                  # лёгкая версия для сайта → out/refraction/web/ (см. ниже)
 node video/scripts/video-render.mjs refraction ru --from 40 --to 60   # кусок ролика
 node video/scripts/video-voice.mjs refraction ru --engine espeak      # черновой робот-голос для таймингов (не коммитить)
 node video/scripts/video-voice.mjs refraction ru --redo 4             # заново реплики сцены 4
@@ -24,6 +25,19 @@ node video/scripts/video-voice.mjs refraction ru --redo 4             # зано
 Нужны Node 22 и `ffmpeg`. Без видеокарты (облачный контейнер) WebGL программный: ~0,5–1 с на кадр 720p,
 ролик целиком — около часа. На Mac и Windows рендер по умолчанию идёт на видеокарте (окно Chromium
 не сворачивать), в разы быстрее; `GPU=0` — программный, `GPU=1` — видеокарта и на Linux.
+
+## Версия для сайта
+
+`make web FILM=<id>` после `make video` кладёт в `out/<id>/web/` файлы с постоянными именами — на них
+ссылается лендинг:
+
+| файл | что |
+|---|---|
+| `<id>-<lang>.mp4` | H.264 720p, CRF 28, AAC 96 кбит/с стерео, `+faststart` — начинает играть до полной загрузки |
+| `<id>-<lang>.jpg` | обложка 1280×720 для `poster` у `<video>` |
+| `<id>-<lang>.vtt` | субтитры из озвучки для `<track kind="subtitles">` |
+
+Исходник — самый крупный готовый `out/<id>/<id>-<lang>-16x9-<size>p.mp4`. Легче: `make web FILM=<id> CRF=31 HEIGHT=540`.
 
 ## Как устроено
 

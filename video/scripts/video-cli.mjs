@@ -8,7 +8,7 @@ import { basename } from 'node:path';
 import FILMS from '../films/index.js';
 
 // какой make-цели соответствует скрипт — для подсказки
-const TARGET = { 'video-voice.mjs': 'voice', 'video-render.mjs': 'video', 'video-sound.mjs': 'sound' };
+const TARGET = { 'video-voice.mjs': 'voice', 'video-render.mjs': 'video', 'video-sound.mjs': 'sound', 'web.mjs': 'web' };
 
 /** список роликов и как запустить — когда ролик не указан или указан неверно */
 function usage(problem) {
