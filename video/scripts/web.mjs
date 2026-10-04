@@ -23,7 +23,8 @@ const { films, langs, opt } = await cli({ crf: '28', height: '720' });
 const CRF = String(opt.crf);
 const HEIGHT = Number(opt.height);
 
-const ff = (args) => execFileSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', ...args], { stdio: 'inherit' });
+// stats — строка прогресса ffmpeg (time=… speed=…) для долгого сжатия видео
+const ff = (args, stats = false) => execFileSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', ...(stats ? ['-stats'] : []), '-y', ...args], { stdio: 'inherit' });
 const mb = (f) => `${(statSync(f).size / 2 ** 20).toFixed(1)} МБ`;
 
 let made = 0;
@@ -40,17 +41,18 @@ for (const film of films) {
       continue;
     }
     mkdirSync(WEB, { recursive: true });
+    console.log(`${film.id} ${lang}: сжимаю ${src} (${mb(join(OUT, src))}) — x264 preset slow, около минуты-двух…`);
     const base = join(WEB, `${film.id}-${lang}`);
     ff(['-i', join(OUT, src),
       '-vf', `scale=-2:${HEIGHT}:flags=lanczos`, '-c:v', 'libx264', '-preset', 'slow', '-crf', CRF,
       '-tune', 'film', '-profile:v', 'high', '-pix_fmt', 'yuv420p',
-      '-c:a', 'aac', '-b:a', '96k', '-ac', '2', '-movflags', '+faststart', `${base}.mp4`]);
+      '-c:a', 'aac', '-b:a', '96k', '-ac', '2', '-movflags', '+faststart', `${base}.mp4`], true);
     const poster = join(OUT, `poster-${lang}-16x9.jpg`);
     if (existsSync(poster)) ff(['-i', poster, '-vf', `scale=-2:${HEIGHT}:flags=lanczos`, '-q:v', '4', `${base}.jpg`]);
     else console.warn(`  ⚠ нет обложки ${rel(poster)} — make poster FILM=${film.id}`);
     const vtt = join(VIDEO, 'films', film.id, 'voice', `${lang}.vtt`);
     if (existsSync(vtt)) copyFileSync(vtt, `${base}.vtt`);
-    console.log(`${film.id} ${lang}: ${src} (${mb(join(OUT, src))}) → ${rel(base)}.mp4 (${mb(`${base}.mp4`)})`);
+    console.log(`${film.id} ${lang}: → ${rel(base)}.mp4 (${mb(`${base}.mp4`)}), .jpg, .vtt`);
     made++;
   }
 }
