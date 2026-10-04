@@ -1,0 +1,19 @@
+{
+  "_": "Настройки озвучки (make voice). Ключ — только в OPENROUTER_API_KEY, не здесь. voice и instructions — для каждого, кто говорит в диалоге (he — ведущий, she — физик). Голоса Gemini TTS: мужские — Puck, Charon, Fenrir, Orus; женские — Aoede, Kore, Leda, Zephyr, Sulafat.",
+  "endpoint": "https://openrouter.ai/api/v1",
+  "api": "auto",
+  "model": "google/gemini-3.8-flash-lite-tts",
+  "voice": { "ru": { "he": "Puck", "she": "Aoede" } },
+  "instructions": {
+    "ru": {
+      "he": "Любопытный молодой ведущий научно-популярного ролика. Спрашивает живо, с искренним интересом и лёгкой улыбкой, как будто сам впервые это видит. Не тараторь, не переигрывай. Читай текст ровно как написан.",
+      "she": "Спокойная, тёплая женщина-физик объясняет другу, как устроен свет. Говорит ясно и неторопливо, с улыбкой в голосе, делает короткие паузы перед главным. Формулы читает словами, внятно. Читай текст ровно как написан."
+    }
+  },
+  "speed": 1.0,
+  "loudness": -16,
+  "proxy": "",
+  "music": { "enabled": true, "gain": -4, "duck": true },
+  "sfx": { "enabled": true, "gain": 0 },
+  "verify": { "enabled": true, "model": "google/gemini-3.5-transcribe", "retries": 3, "minScore": 0.85 }
+}

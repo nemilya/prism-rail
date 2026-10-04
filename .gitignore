@@ -1,0 +1,12 @@
+# macOS
+.DS_Store
+
+# производное — всё пересобирается make (MP4, кадры)
+out/
+
+# зависимости и локальные настройки (ключ OpenRouter — только тут или в окружении)
+node_modules/
+local.mk
+
+# кеш реплик озвучки (make voice пересоберёт)
+video/films/*/voice/clips/
