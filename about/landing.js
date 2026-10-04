@@ -1,4 +1,4 @@
-/* Лендинг: главы и ссылки «в ролике с …» перематывают видео; подсветка текущей главы.
+/* Страница «О проекте» (about/): главы и ссылки «в ролике с …» перематывают видео; подсветка текущей главы.
  * Нет MP4 в media/ (make landing ещё не запускали) — показываем ссылку на живой плеер video/,
  * и главы открывают его с нужной секунды (&t=). */
 (() => {
@@ -13,7 +13,7 @@
     offline = true;
     clip.hidden = true;
     live.hidden = false;
-    for (const a of links) a.href = `video/?film=refraction&t=${Math.floor(+a.dataset.t)}`;
+    for (const a of links) a.href = `../video/?film=refraction&t=${Math.floor(+a.dataset.t)}`;
   }
   const source = clip.querySelector('source');
   source.addEventListener('error', useLivePlayer);
@@ -23,8 +23,8 @@
   // нет обложки — кадр из симулятора
   const probe = new Image();
   probe.onerror = () => {
-    clip.poster = 'landing/hero.jpg';
-    live.querySelector('img').src = 'landing/hero.jpg';
+    clip.poster = 'hero.jpg';
+    live.querySelector('img').src = 'hero.jpg';
   };
   probe.src = clip.getAttribute('poster');
 

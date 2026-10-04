@@ -52,7 +52,7 @@ clean-out:  ## удалить out/ — все MP4 и кадры (пересоб�
 	rm -rf out
 
 .PHONY: landing
-landing:  ## веб-версия ролика (make web) → media/ для лендинга: index.html ссылается на media/refraction-ru.{mp4,jpg}
+landing:  ## веб-версия ролика (make web) → media/ для страницы «О проекте»: about/ ссылается на media/refraction-ru.{mp4,jpg}
 	@test -f out/refraction/web/refraction-ru.mp4 || { echo 'нет out/refraction/web/refraction-ru.mp4 — сначала make video FILM=refraction и make web FILM=refraction'; exit 1; }
 	mkdir -p media
 	cp out/refraction/web/refraction-ru.mp4 out/refraction/web/refraction-ru.jpg media/
