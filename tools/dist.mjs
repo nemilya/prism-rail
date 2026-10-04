@@ -1,6 +1,6 @@
 /* Сайт для выкладки → dist/ (не в git): содержимое папки копируется на хостинг как есть.
- *   index.html     — переход в симулятор (код сцены из #hash сохраняется)
- *   sim/           — симулятор
+ *   index.html     — сам симулятор (копия sim/index.html, ссылки ../ → ./): стартовая без перехода
+ *   sim/           — симулятор по старому адресу (старые ссылки /sim/#код и плеер video/ с ?embed)
  *   about/         — «О проекте»: ролик, физика, вдохновение
  *   media/         — веб-версия ролика из out/<id>/web/ (make video + make web); нет — about/ ведёт в живой плеер
  *   video/         — живой плеер (ролик рисуется из симулятора в браузере): только то, что нужно в браузере
@@ -8,7 +8,7 @@
  *
  *   node tools/dist.mjs            # собрать (make dist)
  *   node tools/dist.mjs --serve    # собрать и открыть локально (make preview) */
-import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, rmSync, statSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 
 import FILMS from '../video/films/index.js';
@@ -18,7 +18,7 @@ const DIST = join(ROOT, 'dist');
 const VIDEO = join(ROOT, 'video');
 
 function files() {
-  const list = ['index.html', 'sim/index.html',
+  const list = ['sim/index.html',
     'video/index.html', 'video/player.js', 'video/player.css', 'video/films/index.js',
     'video/lib/engine.js', 'video/lib/overlay.js', 'video/lib/rigs.js'];
   for (const f of readdirSync(join(ROOT, 'about'))) list.push(`about/${f}`);
@@ -36,6 +36,13 @@ for (const f of files()) {
   mkdirSync(dirname(join(DIST, f)), { recursive: true });
   copyFileSync(join(ROOT, f), join(DIST, f));
 }
+
+// стартовая — сам симулятор. В репозитории он живёт в sim/ (его снимают ролики и проверяют тесты),
+// а корневой index.html туда перенаправляет; на сайте перенаправления нет.
+const sim = readFileSync(join(ROOT, 'sim/index.html'), 'utf8');
+const rootSim = sim.replace(/href="\.\.\//g, 'href="');
+if (rootSim === sim || /(src|href)="\.\.\//.test(rootSim)) throw new Error('sim/index.html: не нашлись ссылки ../ для стартовой — проверьте tools/dist.mjs');
+writeFileSync(join(DIST, 'index.html'), rootSim);
 
 // веб-версия ролика: about/ ссылается на ../media/<id>-ru.{mp4,jpg}
 const missing = [];

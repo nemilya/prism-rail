@@ -129,13 +129,8 @@ img { max-width: 100%; }
 }
 
 /* inspiration */
-.inspo { display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 28px; align-items: start; }
+.inspo { max-width: 760px; }
 .inspo__text p { margin: 0 0 14px; color: rgba(238, 240, 245, .8); font-size: 16px; max-width: 64ch; }
 .inspo__text a:not(.cta) { color: var(--ink); text-decoration-color: rgba(238, 240, 245, .35); text-underline-offset: 3px; }
 .inspo__text .cta { margin-top: 6px; }
-.credits { margin: 0; padding: 18px 20px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line);
-  display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 13.5px; }
-.credits dt { color: var(--muted); }
-.credits dd { margin: 0; color: var(--ink); overflow-wrap: anywhere; }
 .inspo__note { margin: 20px 0 0; font-size: 13.5px; color: var(--muted); }
-@media (max-width: 980px) { .inspo { grid-template-columns: 1fr; } }

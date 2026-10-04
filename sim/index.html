@@ -76,7 +76,6 @@ button,select,input{font:inherit;color:inherit}
 .dock button[aria-pressed="true"]{background:var(--chip)}
 .dock .sep{width:1px;background:var(--line);margin:6px 2px}
 .dock .sound-on{position:relative}
-.dock .sound-hint{box-shadow:inset 0 0 0 1px var(--track)}
 .dock .sound-on::after{content:"";position:absolute;left:14px;right:14px;bottom:4px;height:2px;border-radius:2px;background:var(--spectrum)}
 
 /* panel */
@@ -116,7 +115,7 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
 .hint{font-size:12px;color:var(--muted);margin:4px 0 10px}
 
 /* intro */
-.intro{position:fixed;inset:0;display:grid;place-items:center;background:radial-gradient(120% 90% at 50% 60%,rgba(0,0,0,0),rgba(0,0,0,.55));z-index:5;transition:opacity 1.2s ease;pointer-events:none}
+.intro{position:fixed;inset:0;display:grid;place-items:center;background:radial-gradient(120% 90% at 50% 60%,rgba(0,0,0,.15),rgba(0,0,0,.78));z-index:5;transition:opacity .9s ease}
 .intro.gone{opacity:0;pointer-events:none}
 .intro .card{text-align:center;max-width:560px;padding:24px;color:var(--on-stage)}
 .intro h2{margin:0;font-size:clamp(52px,9vw,104px);font-weight:700;letter-spacing:-.045em;line-height:.95;background:var(--spectrum);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:film 9s ease-in-out infinite alternate}
@@ -127,6 +126,8 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
 .cta.primary{background:rgba(10,10,14,.6)}
 .cta.primary::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;background:var(--spectrum);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
 .cta:hover{background:rgba(255,255,255,.12)}
+.intro .back{display:inline-block;margin-top:14px;font-size:13px;color:rgba(243,245,249,.62);text-decoration:none;border-bottom:1px solid rgba(243,245,249,.25)}
+.intro .back:hover{color:#f3f5f9}
 .intro small{display:block;margin-top:26px;font-size:12.5px;color:rgba(243,245,249,.45)}
 
 .toast{position:fixed;left:50%;bottom:calc(78px + env(safe-area-inset-bottom,0px));transform:translate(-50%,8px);background:var(--panel);color:var(--ink);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--line);padding:8px 14px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:6}
@@ -150,7 +151,12 @@ body.embed .brand,body.embed .fps,body.embed .intro,body.embed .dock,body.embed 
   <div class="card">
     <h2>Prism Rail</h2>
     <p>Игрушечная тележка с двумя прожекторами едет сквозь рощу дихроичных стёкол. Каждое стекло, попавшее в луч, вспыхивает своим цветом и звучит своей нотой.</p>
-    <small>Звук включится от первого касания · M — выключить · C — камера · H — скрыть интерфейс</small>
+    <div class="actions">
+      <button class="cta primary" id="startSound">Смотреть со звуком</button>
+      <button class="cta" id="startMute">Без звука</button>
+    </div>
+    <small>Space — пауза, C — камера, H — скрыть интерфейс, M — музыка</small>
+    <a class="back" href="../about/">О проекте и обучающий ролик</a>
   </div>
 </div>
 
@@ -1343,26 +1349,9 @@ let toastTimer = 0;
 function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2400); }
 
 /* intro */
-/* Стартовая страница — сама сцена: заставка не блокирует и гаснет сама. Звук браузер разрешает только после
- * действия пользователя, поэтому он включается от первого касания или клавиши (кроме кнопки звука и M —
- * они переключают сами, и ссылок). */
-function closeIntro() { if ($('intro').hidden) return; $('intro').classList.add('gone'); setTimeout(() => { $('intro').hidden = true; }, 1250); }
-let soundArmed = !EMBED && Music.available;
-$('bSound').classList.toggle('sound-hint', soundArmed);
-function firstGesture(e) {
-  if (e.type === 'keydown' && (e.metaKey || e.ctrlKey || e.altKey || e.key.length > 1 && e.code !== 'Space')) return;
-  closeIntro();
-  if (!soundArmed) return;
-  soundArmed = false; $('bSound').classList.remove('sound-hint');
-  window.removeEventListener('pointerup', firstGesture, true); window.removeEventListener('keydown', firstGesture, true);
-  if (e.type === 'keydown' && ['m', 'ь'].includes(e.key.toLowerCase())) return;
-  if (e.target && e.target.closest && e.target.closest('#bSound, a')) return;
-  if (!Music.on) startMusic();
-}
-if (!EMBED) {
-  window.addEventListener('pointerup', firstGesture, true); window.addEventListener('keydown', firstGesture, true);
-  setTimeout(closeIntro, 4500);
-}
+function closeIntro() { $('intro').classList.add('gone'); setTimeout(() => { $('intro').hidden = true; }, 950); }
+$('startSound').addEventListener('click', () => { closeIntro(); startMusic(); });
+$('startMute').addEventListener('click', closeIntro);
 
 /* keys */
 window.addEventListener('keydown', e => {
