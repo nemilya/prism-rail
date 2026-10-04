@@ -7,6 +7,7 @@ import { serve } from './browser.mjs';
 const port = Number(process.argv[2] || 8790);
 const { base } = await serve(port);
 console.log('Откройте в браузере (Ctrl+C — остановить):\n');
+console.log(`  Лендинг\n    ${base}\n`);
 for (const f of FILMS) {
   console.log(`  ${f.title}`);
   console.log(`    ${base}video/?film=${f.id}            (&t=40 — с 40-й секунды, &subs=1 — субтитры)`);
