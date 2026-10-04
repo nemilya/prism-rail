@@ -174,8 +174,8 @@ const norm = (s) => s.toLowerCase().replace(/ё/g, 'е')
   .replace(/[’']/g, '')
   .replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 // числительные распознаватель пишет цифрами («500», «6 1/2», «viissada» → «500») — в сравнении их пропускаем
-const NUMERAL = /^(ноль|один|одна|два|две|три|четыр|пят|шест|сем|восем|девят|десят|сто|сот|двест|трист|тысяч|миллион|половин|zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fourteen|hundred|thousand|million|half|and|üks|kaks|kolm|neli|viis|kuus|seitse|kaheks|üheks|kümme|sada|saja|tuhat|tuhan|miljon|pool$|ja$)/;
-const UNIT = /^(метр|квадрат|сантиметр|сотых|десятых)/;
+const NUMERAL = /^(ноль|один|одна|два|две|три|четыр|пят|шест|сем|восем|девят|десят|двадцат|тридцат|сорок|девяност|сто|сот|двест|трист|тысяч|миллион|половин|zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fourteen|hundred|thousand|million|half|and|üks|kaks|kolm|neli|viis|kuus|seitse|kaheks|üheks|kümme|sada|saja|tuhat|tuhan|miljon|pool$|ja$)/;
+const UNIT = /^(градус|метр|квадрат|сантиметр|сотых|десятых)/;
 function lev(x, y) {
   const dp = Array.from({ length: y.length + 1 }, (_, j) => j);
   for (let i = 1; i <= x.length; i++) {
