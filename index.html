@@ -1,0 +1,1385 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Prism Rail</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --stage:#000;
+  --on-stage:#f3f5f9;
+  --on-stage-muted:rgba(243,245,249,.62);
+  --panel:rgba(248,249,252,.88);
+  --panel-solid:#f8f9fc;
+  --ink:#15171d;
+  --muted:#5b6274;
+  --line:rgba(21,23,29,.12);
+  --track:rgba(21,23,29,.16);
+  --chip:rgba(21,23,29,.06);
+  --spectrum:linear-gradient(90deg,#5ee7ff 0%,#8b9cff 22%,#d68bff 42%,#ff8fb1 58%,#ffc76b 78%,#b8f26a 100%);
+  --radius-l:16px;
+  --radius-s:10px;
+  --font:"Onest",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --panel:rgba(12,13,18,.66);
+    --panel-solid:#0d0e13;
+    --ink:#eef0f5;
+    --muted:#9aa1b2;
+    --line:rgba(255,255,255,.10);
+    --track:rgba(255,255,255,.18);
+    --chip:rgba(255,255,255,.07);
+  }
+}
+:root[data-theme="dark"]{
+  --panel:rgba(12,13,18,.66);
+  --panel-solid:#0d0e13;
+  --ink:#eef0f5;
+  --muted:#9aa1b2;
+  --line:rgba(255,255,255,.10);
+  --track:rgba(255,255,255,.18);
+  --chip:rgba(255,255,255,.07);
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+html,body{margin:0;height:100%;overflow:hidden}
+body{background:var(--stage);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+#stage{position:fixed;inset:0}
+#stage canvas{display:block;width:100%;height:100%;outline:none;cursor:grab}
+#stage canvas:active{cursor:grabbing}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid #8b9cff;outline-offset:2px}
+
+/* brand */
+.brand{position:fixed;left:24px;top:calc(20px + env(safe-area-inset-top,0px));color:var(--on-stage);pointer-events:none;transition:opacity .4s}
+.brand h1{margin:0;font-weight:600;font-size:19px;letter-spacing:-.01em}
+.brand p{margin:2px 0 0;font-size:12.5px;color:var(--on-stage-muted);font-weight:400}
+.fps{position:fixed;left:24px;bottom:calc(22px + env(safe-area-inset-bottom,0px));color:var(--on-stage-muted);font-size:12px;font-variant-numeric:tabular-nums;pointer-events:none;transition:opacity .4s}
+
+/* dock */
+.dock{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;gap:4px;padding:5px;border-radius:999px;background:var(--panel);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border:1px solid var(--line);box-shadow:0 10px 40px rgba(0,0,0,.35);transition:opacity .4s,transform .4s;max-width:calc(100% - 32px);overflow-x:auto}
+.dock button{border:0;background:transparent;padding:8px 14px;border-radius:999px;font-size:13px;font-weight:500;white-space:nowrap;cursor:pointer;color:var(--ink)}
+.dock button:hover{background:var(--chip)}
+.dock button[aria-pressed="true"]{background:var(--chip)}
+.dock .sep{width:1px;background:var(--line);margin:6px 2px}
+.dock .sound-on{position:relative}
+.dock .sound-on::after{content:"";position:absolute;left:14px;right:14px;bottom:4px;height:2px;border-radius:2px;background:var(--spectrum)}
+
+/* panel */
+.panel{position:fixed;right:16px;top:calc(16px + env(safe-area-inset-top,0px));bottom:calc(80px + env(safe-area-inset-bottom,0px));width:304px;border-radius:var(--radius-l);background:var(--panel);backdrop-filter:blur(22px) saturate(150%);-webkit-backdrop-filter:blur(22px) saturate(150%);border:1px solid var(--line);box-shadow:0 20px 60px rgba(0,0,0,.4);overflow-y:auto;overscroll-behavior:contain;padding:6px 18px 18px;transition:opacity .3s,transform .3s}
+.panel[hidden]{display:block;opacity:0;transform:translateX(16px);pointer-events:none}
+.panel section{padding:14px 0 6px;border-bottom:1px solid var(--line)}
+.panel section:last-child{border-bottom:0}
+.panel h2{font-size:13.5px;font-weight:600;margin:0 0 10px;letter-spacing:-.005em}
+.row{margin:0 0 12px}
+.row .lab{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:12.5px;color:var(--muted);margin-bottom:5px}
+.row .lab output{color:var(--ink);font-variant-numeric:tabular-nums;font-weight:500}
+.row.inline{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.row.inline .lab{margin:0}
+select{width:100%;appearance:none;-webkit-appearance:none;background:var(--chip) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23889' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 10px center;border:1px solid var(--line);border-radius:var(--radius-s);padding:7px 28px 7px 10px;font-size:13px;cursor:pointer}
+select option{background:var(--panel-solid);color:var(--ink)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:18px;background:transparent;cursor:pointer;margin:0}
+input[type=range]::-webkit-slider-runnable-track{height:2px;border-radius:2px;background:linear-gradient(90deg,transparent 0,transparent 0),linear-gradient(var(--track),var(--track))}
+input[type=range]::-moz-range-track{height:2px;border-radius:2px;background:var(--track)}
+input[type=range]::-moz-range-progress{height:2px;border-radius:2px;background:var(--spectrum)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--ink);margin-top:-5.5px;border:0;box-shadow:0 0 0 3px var(--panel)}
+input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;background:var(--ink);border:0;box-shadow:0 0 0 3px var(--panel)}
+.rng{position:relative}
+.rng .fill{position:absolute;left:0;top:8px;height:2px;border-radius:2px;background:var(--spectrum);pointer-events:none}
+.switch{position:relative;width:34px;height:20px;flex:none}
+.switch input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer}
+.switch span{position:absolute;inset:0;border-radius:999px;background:var(--track);transition:background .2s;pointer-events:none}
+.switch span::after{content:"";position:absolute;left:3px;top:3px;width:14px;height:14px;border-radius:50%;background:var(--panel-solid);transition:transform .2s}
+.switch input:checked + span{background:var(--spectrum)}
+.switch input:checked + span::after{transform:translateX(14px)}
+.switch input:focus-visible + span{outline:2px solid #8b9cff;outline-offset:2px}
+.code{display:flex;gap:6px}
+.code input{flex:1;min-width:0;background:var(--chip);border:1px solid var(--line);border-radius:var(--radius-s);padding:7px 10px;font-size:12.5px}
+.btn{border:1px solid var(--line);background:var(--chip);border-radius:var(--radius-s);padding:7px 11px;font-size:12.5px;font-weight:500;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--track)}
+.btns{display:flex;gap:6px;margin-top:6px}
+.btns .btn{flex:1}
+.hint{font-size:12px;color:var(--muted);margin:4px 0 10px}
+
+/* intro */
+.intro{position:fixed;inset:0;display:grid;place-items:center;background:radial-gradient(120% 90% at 50% 60%,rgba(0,0,0,.15),rgba(0,0,0,.78));z-index:5;transition:opacity .9s ease}
+.intro.gone{opacity:0;pointer-events:none}
+.intro .card{text-align:center;max-width:560px;padding:24px;color:var(--on-stage)}
+.intro h2{margin:0;font-size:clamp(52px,9vw,104px);font-weight:700;letter-spacing:-.045em;line-height:.95;background:var(--spectrum);background-size:220% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:film 9s ease-in-out infinite alternate}
+@keyframes film{from{background-position:0% 50%}to{background-position:100% 50%}}
+.intro p{margin:20px auto 30px;max-width:44ch;font-size:16px;line-height:1.6;color:var(--on-stage-muted);font-weight:300}
+.intro .actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.cta{position:relative;border:0;border-radius:999px;padding:13px 24px;font-size:15px;font-weight:500;cursor:pointer;color:var(--on-stage);background:rgba(255,255,255,.06)}
+.cta.primary{background:rgba(10,10,14,.6)}
+.cta.primary::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;background:var(--spectrum);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+.cta:hover{background:rgba(255,255,255,.12)}
+.intro small{display:block;margin-top:26px;font-size:12.5px;color:rgba(243,245,249,.45)}
+
+.toast{position:fixed;left:50%;bottom:calc(78px + env(safe-area-inset-bottom,0px));transform:translate(-50%,8px);background:var(--panel);color:var(--ink);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--line);padding:8px 14px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:6}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.fatal{position:fixed;inset:0;display:grid;place-items:center;color:var(--on-stage);text-align:center;padding:24px;z-index:10;background:#000}
+.fatal p{max-width:46ch;color:var(--on-stage-muted)}
+
+body.ui-hidden .dock,body.ui-hidden .panel,body.ui-hidden .brand,body.ui-hidden .fps{opacity:0;pointer-events:none}
+@media (prefers-reduced-motion:reduce){.intro h2{animation:none}*{transition-duration:.01ms!important}}
+@media (max-width:720px){.panel{width:auto;left:16px;top:auto;height:52vh}}
+</style>
+</head>
+<body>
+<div id="stage" aria-label="3D-сцена: тележка с прожекторами среди дихроичных стёкол"></div>
+
+<div class="brand"><h1>Prism Rail</h1><p>свет, стекло и звук на игрушечной трассе</p></div>
+<div class="fps" id="fps"></div>
+
+<div class="intro" id="intro">
+  <div class="card">
+    <h2>Prism Rail</h2>
+    <p>Игрушечная тележка с двумя прожекторами едет сквозь рощу дихроичных стёкол. Каждое стекло, попавшее в луч, вспыхивает своим цветом и звучит своей нотой.</p>
+    <div class="actions">
+      <button class="cta primary" id="startSound">Смотреть со звуком</button>
+      <button class="cta" id="startMute">Без звука</button>
+    </div>
+    <small>Space — пауза, C — камера, H — скрыть интерфейс, M — музыка</small>
+  </div>
+</div>
+
+<nav class="dock" id="dock" aria-label="Управление">
+  <button id="bPause" title="Пауза (Space)">Пауза</button>
+  <button id="bCam" title="Следующая камера (C)">Камера: кино</button>
+  <button id="bNew" title="Новая сцена (R)">Новая сцена</button>
+  <button id="bSound" title="Музыка (M)">Звук выкл.</button>
+  <button id="bSnap" title="Снимок PNG (P)" hidden>Снимок</button>
+  <span class="sep"></span>
+  <button id="bPanel" aria-pressed="true" title="Показать или скрыть настройки">Настройки</button>
+</nav>
+
+<aside class="panel" id="panel" aria-label="Настройки">
+  <section>
+    <h2>Сцена</h2>
+    <div class="row"><div class="lab">Пресет</div>
+      <select data-k="preset">
+        <option value="reference">Референс</option>
+        <option value="ice">Ледяной</option>
+        <option value="sunset">Закат</option>
+        <option value="minimal">Минимал</option>
+        <option value="chaos">Хаос</option>
+      </select></div>
+    <div class="row"><div class="lab">Форма трассы</div>
+      <select data-k="shape">
+        <option value="clover">Клевер</option>
+        <option value="oval">Овал</option>
+        <option value="wave">Змейка</option>
+        <option value="eight">Восьмёрка</option>
+        <option value="random">Случайная</option>
+      </select></div>
+    <div class="row"><div class="lab">Палитра стёкол</div>
+      <select data-k="palette">
+        <option value="spectrum">Полный спектр</option>
+        <option value="ice">Холодная</option>
+        <option value="warm">Тёплая</option>
+        <option value="mono">Моно</option>
+      </select></div>
+    <div class="row"><div class="lab">Стёкол <output data-out="count"></output></div>
+      <div class="rng"><input type="range" data-k="count" min="40" max="400" step="10"><div class="fill"></div></div></div>
+    <div class="row"><div class="lab">Притяжение к трассе <output data-out="attract"></output></div>
+      <div class="rng"><input type="range" data-k="attract" min="0.15" max="1.2" step="0.05"><div class="fill"></div></div></div>
+    <div class="row"><div class="lab">Размер стёкол <output data-out="sizeScale"></output></div>
+      <div class="rng"><input type="range" data-k="sizeScale" min="0.6" max="1.8" step="0.1"><div class="fill"></div></div></div>
+    <div class="row"><div class="lab">Код сцены</div>
+      <div class="code"><input id="codeInput" spellcheck="false" aria-label="Код сцены"><button class="btn" id="codeApply">Применить</button></div>
+      <div class="btns"><button class="btn" id="codeCopy">Скопировать код</button></div>
+      <p class="hint">Код повторяет трассу и расстановку стёкол один в один.</p></div>
+  </section>
+  <section>
+    <h2>Тележка</h2>
+    <div class="row"><div class="lab">Скорость <output data-out="speed"></output></div>
+      <div class="rng"><input type="range" data-k="speed" min="0.05" max="0.6" step="0.01"><div class="fill"></div></div></div>
+    <div class="row inline"><div class="lab">Остановки</div><label class="switch"><input type="checkbox" data-k="stops" aria-label="Остановки"><span></span></label></div>
+  </section>
+  <section>
+    <h2>Свет</h2>
+    <div class="row"><div class="lab">Угол конуса <output data-out="cone"></output></div>
+      <div class="rng"><input type="range" data-k="cone" min="6" max="25" step="1"><div class="fill"></div></div></div>
+    <div class="row"><div class="lab">Яркость <output data-out="intensity"></output></div>
+      <div class="rng"><input type="range" data-k="intensity" min="0.3" max="2" step="0.05"><div class="fill"></div></div></div>
+    <div class="row"><div class="lab">Наклон <output data-out="pitch"></output></div>
+      <div class="rng"><input type="range" data-k="pitch" min="-10" max="10" step="0.5"><div class="fill"></div></div></div>
+    <div class="row"><div class="lab">Поворот вперёд/назад <output data-out="yaw"></output></div>
+      <div class="rng"><input type="range" data-k="yaw" min="-30" max="30" step="1"><div class="fill"></div></div></div>
+    <div class="row"><div class="lab">Дым <output data-out="smoke"></output></div>
+      <div class="rng"><input type="range" data-k="smoke" min="0" max="1" step="0.05"><div class="fill"></div></div></div>
+    <div class="row inline"><div class="lab">Сканирование</div><label class="switch"><input type="checkbox" data-k="scan" aria-label="Сканирование"><span></span></label></div>
+    <div class="row inline"><div class="lab">Передний прожектор</div><label class="switch"><input type="checkbox" data-k="front" aria-label="Передний прожектор"><span></span></label></div>
+  </section>
+  <section>
+    <h2>Камера</h2>
+    <div class="row"><div class="lab">Режим</div>
+      <select data-k="camera">
+        <option value="cinema">Кино</option>
+        <option value="orbit">Орбита</option>
+        <option value="onboard">На борту</option>
+        <option value="chase">Погоня</option>
+      </select></div>
+    <p class="hint">Клик по сцене переключает на орбиту: вращение мышью, зум колесом.</p>
+  </section>
+  <section id="musicSection">
+    <h2>Музыка</h2>
+    <div class="row inline"><div class="lab">Включена</div><label class="switch"><input type="checkbox" data-k="music" aria-label="Музыка"><span></span></label></div>
+    <div class="row"><div class="lab">Громкость <output data-out="volume"></output></div>
+      <div class="rng"><input type="range" data-k="volume" min="0" max="1" step="0.05"><div class="fill"></div></div></div>
+    <div class="row"><div class="lab">Лад</div>
+      <select data-k="mode">
+        <option value="auto">По палитре</option>
+        <option value="pent">Пентатоника</option>
+        <option value="lydian">Лидийский</option>
+        <option value="dorian">Дорийский</option>
+        <option value="whole">Целотонный</option>
+        <option value="single">Одна нота</option>
+      </select></div>
+    <div class="row"><div class="lab">Дрон <output data-out="vDrone"></output></div>
+      <div class="rng"><input type="range" data-k="vDrone" min="0" max="1" step="0.05"><div class="fill"></div></div></div>
+    <div class="row"><div class="lab">Стекло <output data-out="vGlass"></output></div>
+      <div class="rng"><input type="range" data-k="vGlass" min="0" max="1" step="0.05"><div class="fill"></div></div></div>
+    <div class="row"><div class="lab">Стук колёс <output data-out="vPulse"></output></div>
+      <div class="rng"><input type="range" data-k="vPulse" min="0" max="1" step="0.05"><div class="fill"></div></div></div>
+    <div class="row"><div class="lab">Воздух <output data-out="vAir"></output></div>
+      <div class="rng"><input type="range" data-k="vAir" min="0" max="1" step="0.05"><div class="fill"></div></div></div>
+  </section>
+  <section>
+    <h2>Изображение</h2>
+    <div class="row"><div class="lab">Качество</div>
+      <select data-k="quality">
+        <option value="low">Низкое</option>
+        <option value="medium">Среднее</option>
+        <option value="high">Высокое</option>
+      </select></div>
+    <div class="row"><div class="lab">Свечение <output data-out="bloom"></output></div>
+      <div class="rng"><input type="range" data-k="bloom" min="0" max="2.5" step="0.05"><div class="fill"></div></div></div>
+    <div class="row"><div class="lab">Зерно <output data-out="grain"></output></div>
+      <div class="rng"><input type="range" data-k="grain" min="0" max="1" step="0.05"><div class="fill"></div></div></div>
+  </section>
+</aside>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
+<script>
+(function () {
+'use strict';
+
+function fatal(msg) {
+  const d = document.createElement('div');
+  d.className = 'fatal';
+  d.innerHTML = '<div><h2 style="margin:0 0 8px;font-weight:600">Сцена не запустилась</h2><p></p></div>';
+  d.querySelector('p').textContent = msg;
+  document.body.appendChild(d);
+}
+if (!window.THREE || !THREE.EffectComposer || !THREE.UnrealBloomPass || !THREE.OrbitControls) {
+  fatal('Не загрузилась библиотека Three.js. Проверьте подключение к интернету и обновите страницу.');
+  return;
+}
+
+/* ================= constants & params ================= */
+const W = 8, D = 6, H = 3;            // room, metres
+const RANGE = 6.5;                     // spotlight reach
+const JOINT = 0.3;                     // rail section length
+const SEED_WORDS = ['lumen','prism','aurora','quartz','halo','spectra','glint','nova','opal','iris','vela','lyra'];
+
+const PRESETS = {
+  reference: { shape:'clover', count:300, palette:'spectrum', attract:0.4, sizeScale:1.0, smoke:0.45, speed:0.25, cone:14, pitch:-1, yaw:0, scan:false, front:true },
+  ice:       { shape:'wave',   count:260, palette:'ice',      attract:0.5, sizeScale:1.1, smoke:0.75, speed:0.15, cone:16, pitch:0,  yaw:0, scan:false, front:false },
+  sunset:    { shape:'oval',   count:220, palette:'warm',     attract:0.35,sizeScale:1.0, smoke:0.35, speed:0.22, cone:12, pitch:-3, yaw:-10, scan:false, front:false },
+  minimal:   { shape:'oval',   count:70,  palette:'mono',     attract:0.3, sizeScale:1.6, smoke:0.0,  speed:0.2,  cone:12, pitch:-2, yaw:0, scan:false, front:false },
+  chaos:     { shape:'random', count:400, palette:'spectrum', attract:0.6, sizeScale:0.9, smoke:0.55, speed:0.45, cone:18, pitch:-1, yaw:0, scan:true,  front:true }
+};
+const PALETTES = { spectrum:[440,660], ice:[430,520], warm:[560,660], mono:[462,478] };
+const MODES = {
+  pent:[0,2,4,7,9], lydian:[0,2,4,6,7,9,11], dorian:[0,2,3,5,7,9,10], whole:[0,2,4,6,8,10], single:[0,7]
+};
+const QUALITY = { low:{ pr:0.75, k:12, rays:8 }, medium:{ pr:1, k:20, rays:12 }, high:{ pr:1.5, k:32, rays:18 } };
+const CAM_NAMES = { cinema:'кино', orbit:'орбита', onboard:'на борту', chase:'погоня' };
+const CAM_ORDER = ['cinema','orbit','onboard','chase'];
+
+const P = Object.assign({
+  preset:'reference', seed:'lumen-482',
+  stops:false, intensity:1, camera:'cinema', quality:'high', bloom:1.15, grain:0.5,
+  music:false, volume:0.75, mode:'auto', vDrone:0.6, vGlass:0.85, vPulse:0.35, vAir:0.4
+}, PRESETS.reference);
+const REBUILD = new Set(['shape','count','palette','attract','sizeScale']);
+
+/* ================= helpers ================= */
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function hashStr(s){ let h=2166136261>>>0; for (let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; }
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+function gs(w,m,s){ const d=(w-m)/s; return Math.exp(-d*d); }
+function spectral(w){ return [gs(w,610,50)+0.3*gs(w,420,25), gs(w,545,45), gs(w,455,35)]; }
+function dichroicR(l0,cosI){
+  const s2=1-cosI*cosI; const lp=l0*Math.sqrt(Math.max(0,1-s2/2.56));
+  const a=spectral(lp-30), b=spectral(lp), c=spectral(lp+30);
+  const r=[a[0]+b[0]+c[0], a[1]+b[1]+c[1], a[2]+b[2]+c[2]];
+  const m=Math.max(r[0],r[1],r[2],1e-4); return [r[0]/m,r[1]/m,r[2]/m];
+}
+function complement(c){ const t=[1-c[0]*0.92,1-c[1]*0.92,1-c[2]*0.92]; const m=Math.max(t[0],t[1],t[2],1e-4); return [t[0]/m,t[1]/m,t[2]/m]; }
+function reflectance(cosI){ return 0.35+0.45*Math.pow(1-cosI,3); }
+
+const GLSL_COMMON = `
+float gs(float w,float m,float s){ float d=(w-m)/s; return exp(-d*d); }
+vec3 spectral(float w){ return vec3(gs(w,610.0,50.0)+0.3*gs(w,420.0,25.0), gs(w,545.0,45.0), gs(w,455.0,35.0)); }
+vec3 dichroicR(float l0,float cosI){
+  float s2=1.0-cosI*cosI; float lp=l0*sqrt(max(0.0,1.0-s2/2.56));
+  vec3 c=spectral(lp-30.0)+spectral(lp)+spectral(lp+30.0);
+  return c/max(max(c.r,c.g),max(c.b,1e-4));
+}
+vec3 complementC(vec3 c){ vec3 t=1.0-c*0.92; return t/max(max(t.r,t.g),max(t.b,1e-4)); }
+float hash3(vec3 p){ p=fract(p*0.3183099+0.1); p*=17.0; return fract(p.x*p.y*p.z*(p.x+p.y+p.z)); }
+float vnoise(vec3 x){ vec3 i=floor(x); vec3 f=fract(x); f=f*f*(3.0-2.0*f);
+  return mix(mix(mix(hash3(i),hash3(i+vec3(1.,0.,0.)),f.x),mix(hash3(i+vec3(0.,1.,0.)),hash3(i+vec3(1.,1.,0.)),f.x),f.y),
+             mix(mix(hash3(i+vec3(0.,0.,1.)),hash3(i+vec3(1.,0.,1.)),f.x),mix(hash3(i+vec3(0.,1.,1.)),hash3(i+vec3(1.,1.,1.)),f.x),f.y),f.z); }
+`;
+
+/* ================= renderer & post ================= */
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ antialias:true, powerPreference:'high-performance' });
+} catch (e) {
+  fatal('Браузер не дал доступ к WebGL. Включите аппаратное ускорение и обновите страницу.');
+  return;
+}
+renderer.setClearColor(0x000000, 1);
+renderer.toneMapping = THREE.NoToneMapping;
+renderer.outputEncoding = THREE.LinearEncoding;
+const stageEl = document.getElementById('stage');
+stageEl.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(50, 1, 0.005, 40);
+camera.position.set(3.6, 2.2, 3.4);
+const camTarget = new THREE.Vector3(0, 0, 0);
+
+const rt = new THREE.WebGLRenderTarget(4, 4, { minFilter:THREE.LinearFilter, magFilter:THREE.LinearFilter, format:THREE.RGBAFormat, type:THREE.HalfFloatType });
+const composer = new THREE.EffectComposer(renderer, rt);
+composer.addPass(new THREE.RenderPass(scene, camera));
+const bloom = new THREE.UnrealBloomPass(new THREE.Vector2(256, 256), 1.1, 0.55, 0.5);
+composer.addPass(bloom);
+const finalPass = new THREE.ShaderPass({
+  uniforms: { tDiffuse:{ value:null }, uTime:{ value:0 }, uGrain:{ value:0.5 }, uRes:{ value:new THREE.Vector2(1,1) }, uCA:{ value:0.012 } },
+  vertexShader: 'varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
+  fragmentShader: `
+    uniform sampler2D tDiffuse; uniform float uTime; uniform float uGrain; uniform vec2 uRes; uniform float uCA; varying vec2 vUv;
+    vec3 aces(vec3 x){ return clamp((x*(2.51*x+0.03))/(x*(2.43*x+0.59)+0.14),0.0,1.0); }
+    void main(){
+      vec2 c=vUv-0.5; float r2=dot(c,c); vec2 off=c*uCA*(0.4+r2*2.0);
+      vec3 col=vec3(texture2D(tDiffuse,vUv+off).r, texture2D(tDiffuse,vUv).g, texture2D(tDiffuse,vUv-off).b);
+      col=aces(col*1.05);
+      col=pow(col,vec3(1.0/2.2));
+      col*=1.0-smoothstep(0.18,0.75,r2)*0.6;
+      float n=fract(sin(dot(vUv*uRes+fract(uTime*7.13)*97.0,vec2(12.9898,78.233)))*43758.5453);
+      col+=(n-0.5)*0.045*uGrain;
+      gl_FragColor=vec4(col,1.0);
+    }`
+});
+composer.addPass(finalPass);
+
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.dampingFactor = 0.08;
+controls.maxPolarAngle = 1.52; controls.minDistance = 0.12; controls.maxDistance = 9;
+controls.enabled = false;
+
+function resize() {
+  const w = stageEl.clientWidth || window.innerWidth, h = stageEl.clientHeight || window.innerHeight;
+  const q = QUALITY[P.quality];
+  const pr = Math.min(window.devicePixelRatio || 1, q.pr);
+  renderer.setPixelRatio(pr);
+  renderer.setSize(w, h, false);
+  composer.setPixelRatio(pr);
+  composer.setSize(w, h);
+  bloom.setSize(w * pr, h * pr);
+  finalPass.uniforms.uRes.value.set(w * pr, h * pr);
+  camera.aspect = w / h; camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', resize);
+
+/* ================= room ================= */
+scene.add(new THREE.AmbientLight(0xffffff, 0.018));
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(W, D), new THREE.MeshStandardMaterial({ color:0x0f1013, roughness:0.42, metalness:0.0 }));
+floor.rotation.x = -Math.PI / 2; scene.add(floor);
+const wallMat = new THREE.MeshStandardMaterial({ color:0x15161a, roughness:0.95, side:THREE.BackSide });
+const walls = new THREE.Mesh(new THREE.BoxGeometry(W, H, D), wallMat);
+walls.position.y = H / 2 - 0.002; scene.add(walls);
+
+/* ================= cart ================= */
+const cart = new THREE.Group(); scene.add(cart);
+(function buildCart() {
+  const dark = new THREE.MeshStandardMaterial({ color:0x1a1b20, roughness:0.55, metalness:0.2 });
+  const darker = new THREE.MeshStandardMaterial({ color:0x0c0d10, roughness:0.7 });
+  const blue = new THREE.MeshStandardMaterial({ color:0x2457e6, roughness:0.4, emissive:0x0b2a8a, emissiveIntensity:0.6 });
+  const lens = new THREE.MeshBasicMaterial({ color:new THREE.Color(3.2, 3.1, 3.0) });
+  const add = (geo, mat, x, y, z, rx, ry, rz) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); if (rx) m.rotation.x = rx; if (ry) m.rotation.y = ry; if (rz) m.rotation.z = rz; cart.add(m); return m; };
+  add(new THREE.BoxGeometry(0.066, 0.012, 0.12), dark, 0, 0.016, 0);
+  const wheel = new THREE.CylinderGeometry(0.0085, 0.0085, 0.006, 16);
+  [[0.028,0.04],[-0.028,0.04],[0.028,-0.04],[-0.028,-0.04]].forEach(p => add(wheel, darker, p[0], 0.0085, p[1], 0, 0, Math.PI / 2));
+  add(new THREE.BoxGeometry(0.026, 0.03, 0.03), blue, 0.0145, 0.037, -0.034);
+  add(new THREE.BoxGeometry(0.026, 0.03, 0.03), blue, -0.0145, 0.037, -0.034);
+  add(new THREE.BoxGeometry(0.05, 0.022, 0.05), dark, 0, 0.033, 0.026);
+  const housing = new THREE.CylinderGeometry(0.0085, 0.0095, 0.016, 18);
+  add(housing, darker, 0.031, 0.045, 0.025, 0, 0, Math.PI / 2);
+  add(housing, darker, -0.031, 0.045, 0.025, 0, 0, Math.PI / 2);
+  add(new THREE.CylinderGeometry(0.007, 0.008, 0.012, 18), darker, 0, 0.042, 0.056, Math.PI / 2, 0, 0);
+  const disc = new THREE.CircleGeometry(0.0068, 20);
+  add(disc, lens, 0.0395, 0.045, 0.025, 0, Math.PI / 2, 0);
+  add(disc, lens, -0.0395, 0.045, 0.025, 0, -Math.PI / 2, 0);
+  const front = add(new THREE.CircleGeometry(0.0058, 20), lens, 0, 0.042, 0.0625);
+  cart.userData.frontLens = front;
+  const wire = new THREE.CatmullRomCurve3([new THREE.Vector3(0.012,0.052,-0.034), new THREE.Vector3(0.006,0.085,-0.01), new THREE.Vector3(0.0,0.07,0.018), new THREE.Vector3(-0.004,0.046,0.03)]);
+  cart.add(new THREE.Mesh(new THREE.TubeGeometry(wire, 24, 0.0009, 5, false), darker));
+})();
+
+/* ================= lights ================= */
+const lights = [0, 1, 2].map(() => {
+  const s = new THREE.SpotLight(0xfff4ea, 6, RANGE, 0.2, 0.35, 1.3);
+  s.castShadow = false; scene.add(s); scene.add(s.target);
+  return { spot:s, pos:new THREE.Vector3(), dir:new THREE.Vector3(1, 0, 0), on:true };
+});
+
+/* ================= shared optics data ================= */
+let NG = 0;                 // glass count
+let G = [];                 // glass objects
+let gx, gz, gtx, gtz, ghw, gtop, bMax, glowAcc, flash, onState, lastCol;
+let dataArr, dataTex;
+
+const glassUniforms = {
+  uLPos:{ value:[new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()] },
+  uLDir:{ value:[new THREE.Vector3(1,0,0), new THREE.Vector3(-1,0,0), new THREE.Vector3(0,0,1)] },
+  uLOn:{ value:[1, 1, 0] },
+  uCosO:{ value:Math.cos(0.12) }, uCosI:{ value:Math.cos(0.08) },
+  uInt:{ value:1 }, uData:{ value:null }, uN:{ value:1 }, uSheen:{ value:1 }
+};
+const glassVS = `
+attribute vec3 aMeta; varying vec3 vW; varying vec3 vN; varying vec3 vMeta;
+void main(){ vec4 w=modelMatrix*vec4(position,1.0); vW=w.xyz; vN=normal; vMeta=aMeta; gl_Position=projectionMatrix*viewMatrix*w; }`;
+const glassFS = `
+uniform vec3 uLPos[3]; uniform vec3 uLDir[3]; uniform float uLOn[3];
+uniform float uCosO; uniform float uCosI; uniform float uInt; uniform sampler2D uData; uniform float uN; uniform float uSheen;
+varying vec3 vW; varying vec3 vN; varying vec3 vMeta;
+${GLSL_COMMON}
+void main(){
+  vec3 N=normalize(vN); vec3 V=normalize(cameraPosition-vW);
+  float idU=(vMeta.y+0.5)/uN;
+  float cv=abs(dot(N,V));
+  vec3 col=dichroicR(vMeta.x,cv)*(EDGE_BASE+0.05*pow(1.0-cv,4.0))*uSheen;
+  for(int i=0;i<3;i++){
+    if(uLOn[i]<0.5) continue;
+    vec3 L=vW-uLPos[i]; float d=length(L); L/=d;
+    float cone=smoothstep(uCosO,uCosI,dot(L,uLDir[i]));
+    if(cone<=0.0) continue;
+    vec4 tx=texture2D(uData,vec2(idU,(float(i)+0.5)/4.0));
+    if(tx.a<=0.0) continue;
+    float att=1.0/(1.0+d*d*0.35);
+    float cI=abs(dot(N,L));
+    vec3 cr=dichroicR(vMeta.x,cI);
+    float R=0.35+0.45*pow(1.0-cI,3.0);
+    float same=step(0.0,dot(N,-L)*dot(N,V));
+    vec3 c=mix(complementC(cr)*(1.0-R)*0.9,cr*R*1.5,same);
+    col+=c*tx.rgb*tx.a*cone*att*uInt*DIRECT_GAIN;
+  }
+  vec4 g=texture2D(uData,vec2(idU,3.5/4.0));
+  col+=g.rgb*GLOW_GAIN;
+  gl_FragColor=vec4(col,1.0);
+}`;
+function glassMaterial(edge) {
+  return new THREE.ShaderMaterial({
+    uniforms: glassUniforms, vertexShader: glassVS, fragmentShader: glassFS,
+    defines: edge ? { EDGE_BASE:'0.05', DIRECT_GAIN:'3.6', GLOW_GAIN:'1.6' } : { EDGE_BASE:'0.010', DIRECT_GAIN:'2.0', GLOW_GAIN:'0.42' },
+    blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, side: THREE.DoubleSide
+  });
+}
+const glassFaceMat = glassMaterial(false);
+const glassEdgeMat = glassMaterial(true);
+
+/* patches (light spots on surfaces) */
+const MAX_PATCH = 96;
+const patchGeo = new THREE.PlaneGeometry(1, 1);
+const patchColor = new THREE.InstancedBufferAttribute(new Float32Array(MAX_PATCH * 3), 3);
+const patchSeed = new THREE.InstancedBufferAttribute(new Float32Array(MAX_PATCH), 1);
+patchGeo.setAttribute('aColor', patchColor); patchGeo.setAttribute('aSeed', patchSeed);
+const patchMesh = new THREE.InstancedMesh(patchGeo, new THREE.ShaderMaterial({
+  vertexShader: `attribute vec3 aColor; attribute float aSeed; varying vec2 vUv; varying vec3 vC; varying float vS;
+    void main(){ vUv=uv; vC=aColor; vS=aSeed; gl_Position=projectionMatrix*modelViewMatrix*instanceMatrix*vec4(position,1.0); }`,
+  fragmentShader: `varying vec2 vUv; varying vec3 vC; varying float vS;
+    void main(){
+      float v=vUv.y; float u=vUv.x-0.5;
+      float skew=(vS-0.5)*0.55*v;
+      float hw=0.5*mix(1.0,0.12+0.2*vS,pow(v,1.15+vS));
+      float m=smoothstep(hw,hw-0.07-0.05*vS,abs(u-skew));
+      float fade=smoothstep(0.0,0.07,v)*(1.0-0.65*v);
+      float streak=0.78+0.22*sin((u-skew)*(30.0+40.0*vS)+vS*30.0);
+      gl_FragColor=vec4(vC*m*fade*streak,1.0);
+    }`,
+  blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, side: THREE.DoubleSide
+}), MAX_PATCH);
+patchMesh.frustumCulled = false; patchMesh.count = 0; scene.add(patchMesh);
+
+/* beams (visible light in smoke) */
+const MAX_BEAM = 3 + 32;
+const beamGeo = new THREE.CylinderGeometry(1, 0.05, 1, 28, 1, true);
+beamGeo.translate(0, 0.5, 0);
+const beamColor = new THREE.InstancedBufferAttribute(new Float32Array(MAX_BEAM * 3), 3);
+beamGeo.setAttribute('aColor', beamColor);
+const beamUniforms = { uTime:{ value:0 }, uSmoke:{ value:0.45 } };
+const beamMesh = new THREE.InstancedMesh(beamGeo, new THREE.ShaderMaterial({
+  uniforms: beamUniforms,
+  vertexShader: `attribute vec3 aColor; varying float vV; varying vec3 vC; varying vec3 vWP; varying vec3 vWN;
+    void main(){ vV=position.y; vC=aColor; mat4 m=modelMatrix*instanceMatrix; vec4 wp=m*vec4(position,1.0); vWP=wp.xyz;
+      vec3 rad=normalize(vec3(position.x,0.0,position.z)+1e-5); vWN=normalize(mat3(m)*rad);
+      gl_Position=projectionMatrix*viewMatrix*wp; }`,
+  fragmentShader: `uniform float uTime; uniform float uSmoke; varying float vV; varying vec3 vC; varying vec3 vWP; varying vec3 vWN;
+    ${GLSL_COMMON}
+    void main(){
+      vec3 V=normalize(cameraPosition-vWP);
+      float e=pow(abs(dot(vWN,V)),1.7);
+      float fade=pow(1.0-vV,1.5)*smoothstep(0.0,0.03,vV);
+      float n=vnoise(vWP*6.0+vec3(0.0,uTime*0.06,uTime*0.1))*0.6+vnoise(vWP*17.0-vec3(uTime*0.12,0.0,0.0))*0.4;
+      float dust=0.45+1.1*n;
+      float fl=smoothstep(0.0,0.015,vWP.y);
+      gl_FragColor=vec4(vC*e*fade*dust*fl*uSmoke,1.0);
+    }`,
+  blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, side: THREE.DoubleSide
+}), MAX_BEAM);
+beamMesh.frustumCulled = false; beamMesh.count = 0; scene.add(beamMesh);
+
+/* ================= track & glass build ================= */
+let curve = null, L = 1, trackGroup = null, glassGroup = null;
+let tsx, tsz, tgrid, tcell = 0.3;
+
+function trackPoints(shape, rnd) {
+  const pts = [];
+  if (shape === 'random') {
+    const K = 8 + Math.floor(rnd() * 4);
+    let r = []; for (let k = 0; k < K; k++) r.push(1.15 + rnd() * 1.25);
+    for (let pass = 0; pass < 2; pass++) r = r.map((v, k) => (r[(k - 1 + K) % K] + 2 * v + r[(k + 1) % K]) / 4);
+    for (let k = 0; k < K; k++) {
+      const a = (k / K) * Math.PI * 2 + (rnd() - 0.5) * 0.35 * (Math.PI * 2 / K);
+      pts.push(new THREE.Vector3(1.3 * r[k] * Math.cos(a), 0, r[k] * Math.sin(a)));
+    }
+    return pts;
+  }
+  const N = 80;
+  for (let i = 0; i < N; i++) {
+    const t = (i / N) * Math.PI * 2; let x, z;
+    if (shape === 'oval') { x = 2.6 * Math.cos(t); z = 1.7 * Math.sin(t); }
+    else if (shape === 'clover') { const rr = 1.72 * (1 + 0.27 * Math.cos(4 * t)); x = 1.3 * rr * Math.cos(t); z = rr * Math.sin(t); }
+    else if (shape === 'eight') { x = 2.7 * Math.sin(t); z = 3.3 * Math.sin(t) * Math.cos(t); }
+    else { x = 2.7 * Math.cos(t); z = 1.45 * Math.sin(t) + 0.42 * Math.sin(3 * t); }
+    pts.push(new THREE.Vector3(x, 0, z));
+  }
+  return pts;
+}
+
+function distToTrack(x, z) {
+  const cx = Math.floor(x / tcell), cz = Math.floor(z / tcell);
+  let best = 1e9;
+  for (let i = -2; i <= 2; i++) for (let j = -2; j <= 2; j++) {
+    const arr = tgrid.get((cx + i) + ',' + (cz + j)); if (!arr) continue;
+    for (let k = 0; k < arr.length; k++) { const id = arr[k]; const dx = tsx[id] - x, dz = tsz[id] - z; const d = dx * dx + dz * dz; if (d < best) best = d; }
+  }
+  return best === 1e9 ? 0.9 : Math.sqrt(best);
+}
+
+function disposeGroup(g) {
+  if (!g) return;
+  g.traverse(o => { if (o.geometry) o.geometry.dispose(); });
+  scene.remove(g);
+}
+
+function build() {
+  const rnd = mulberry32(hashStr(P.seed + '|' + P.shape));
+  disposeGroup(trackGroup); disposeGroup(glassGroup);
+  trackGroup = new THREE.Group(); glassGroup = new THREE.Group();
+
+  /* --- track --- */
+  curve = new THREE.CatmullRomCurve3(trackPoints(P.shape, rnd), true, 'centripetal');
+  curve.arcLengthDivisions = 3000;
+  L = curve.getLength();
+  const M = Math.ceil(L / 0.02);
+  const sp = curve.getSpacedPoints(M);
+  tsx = new Float32Array(M); tsz = new Float32Array(M); tgrid = new Map();
+  for (let i = 0; i < M; i++) {
+    tsx[i] = sp[i].x; tsz[i] = sp[i].z;
+    const key = Math.floor(sp[i].x / tcell) + ',' + Math.floor(sp[i].z / tcell);
+    let a = tgrid.get(key); if (!a) { a = []; tgrid.set(key, a); } a.push(i);
+  }
+  const railMat = new THREE.MeshStandardMaterial({ color:0x8d929c, metalness:0.85, roughness:0.32 });
+  const RM = Math.ceil(L / 0.05);
+  [0.0225, -0.0225].forEach(off => {
+    const pts = [];
+    for (let i = 0; i < RM; i++) {
+      const u = i / RM; const p = curve.getPointAt(u), t = curve.getTangentAt(u);
+      pts.push(new THREE.Vector3(p.x - t.z * off, 0.0058, p.z + t.x * off));
+    }
+    const c = new THREE.CatmullRomCurve3(pts, true, 'centripetal');
+    trackGroup.add(new THREE.Mesh(new THREE.TubeGeometry(c, RM * 2, 0.0024, 5, true), railMat));
+  });
+  const nS = Math.floor(L / 0.03);
+  const sleepers = new THREE.InstancedMesh(new THREE.BoxGeometry(0.068, 0.0035, 0.011), new THREE.MeshStandardMaterial({ color:0x1c1d22, roughness:0.85 }), nS);
+  const nL = Math.floor(L / 0.09) * 2;
+  const leds = new THREE.InstancedMesh(new THREE.BoxGeometry(0.005, 0.004, 0.005), new THREE.MeshBasicMaterial({ color:new THREE.Color(0.55, 0.57, 0.66) }), nL);
+  const dummy = new THREE.Object3D(); const tmp = new THREE.Vector3();
+  for (let i = 0; i < nS; i++) {
+    const u = i / nS; const p = curve.getPointAt(u), t = curve.getTangentAt(u);
+    dummy.position.set(p.x, 0.0018, p.z); dummy.lookAt(tmp.set(p.x + t.x, 0.0018, p.z + t.z)); dummy.updateMatrix();
+    sleepers.setMatrixAt(i, dummy.matrix);
+  }
+  for (let i = 0; i < nL / 2; i++) {
+    const u = i / (nL / 2); const p = curve.getPointAt(u), t = curve.getTangentAt(u);
+    [0.048, -0.048].forEach((off, k) => {
+      dummy.position.set(p.x - t.z * off, 0.002, p.z + t.x * off); dummy.rotation.set(0, 0, 0); dummy.updateMatrix();
+      leds.setMatrixAt(i * 2 + k, dummy.matrix);
+    });
+  }
+  trackGroup.add(sleepers, leds);
+  scene.add(trackGroup);
+
+  /* --- glass placement --- */
+  const range = PALETTES[P.palette];
+  const groves = []; const nGr = 6 + Math.floor(rnd() * 4);
+  for (let i = 0; i < nGr; i++) groves.push([(rnd() * 2 - 1) * (W / 2 - 0.6), (rnd() * 2 - 1) * (D / 2 - 0.6), 0.5 + rnd() * 0.8]);
+  const corridor = 0.085, minSp = 0.07, cell = 0.07; const sgrid = new Map();
+  G = [];
+  let attempts = 0;
+  while (G.length < P.count && attempts < 90000) {
+    attempts++;
+    const x = (rnd() * 2 - 1) * (W / 2 - 0.3), z = (rnd() * 2 - 1) * (D / 2 - 0.3);
+    const h = (0.08 + 0.52 * Math.pow(rnd(), 1.7)) * P.sizeScale;
+    const w = Math.min(h * 0.85, (0.035 + 0.2 * rnd()) * Math.sqrt(P.sizeScale));
+    const yaw = rnd() * Math.PI; const tx = Math.cos(yaw), tz = Math.sin(yaw);
+    const pr = rnd(), pr2 = rnd();
+    const d0 = distToTrack(x, z);
+    if (d0 < corridor + w * 0.5 + 0.01) {
+      const d1 = distToTrack(x + tx * w / 2, z + tz * w / 2), d2 = distToTrack(x - tx * w / 2, z - tz * w / 2);
+      if (Math.min(d0, d1, d2) < corridor) continue;
+    }
+    let grove = 0.3; for (let i = 0; i < groves.length; i++) { const g = groves[i]; const dx = x - g[0], dz = z - g[1]; grove += Math.exp(-(dx * dx + dz * dz) / (g[2] * g[2])); }
+    const prob = (0.1 + 0.9 * Math.exp(-d0 / P.attract)) * Math.min(1.25, grove);
+    if (pr > prob) continue;
+    const cx = Math.floor(x / cell), cz = Math.floor(z / cell); let clash = false;
+    for (let i = -1; i <= 1 && !clash; i++) for (let j = -1; j <= 1 && !clash; j++) {
+      const a = sgrid.get((cx + i) + ',' + (cz + j)); if (!a) continue;
+      for (const o of a) { if (Math.hypot(o.x - x, o.z - z) < minSp) { clash = true; break; } }
+    }
+    if (clash) continue;
+    const key = cx + ',' + cz; let a = sgrid.get(key); if (!a) { a = []; sgrid.set(key, a); }
+    const g = { x, z, h, w, tx, tz, tilt:(rnd() - 0.5) * 0.17, l0: range[0] + (range[1] - range[0]) * pr2, pick: rnd() < 0.5 ? 1 : 0, seed: rnd(), shape: [] };
+    // convex shard outline (local x across, y up)
+    const lean = (rnd() - 0.5) * 0.6 * w;
+    const v = [[-w / 2, 0], [w / 2, 0]];
+    if (rnd() < 0.55) { const y = h * (0.22 + 0.4 * rnd()); const lim = w / 2 + (lean - w / 2) * (y / h); v.push([Math.max(w / 2 * (0.6 + 0.4 * rnd()), lim + 0.002), y]); }
+    v.push([lean, h]);
+    if (rnd() < 0.55) { const y = h * (0.2 + 0.4 * rnd()); const lim = -w / 2 + (lean + w / 2) * (y / h); v.push([Math.min(-w / 2 * (0.6 + 0.4 * rnd()), lim - 0.002), y]); }
+    g.shape = v;
+    a.push(g); G.push(g);
+  }
+  NG = G.length;
+
+  /* --- glass geometry (merged) --- */
+  const pos = [], nor = [], meta = [], epos = [], enor = [], emeta = [];
+  const stands = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshStandardMaterial({ color:0x111215, roughness:0.6 }), NG);
+  gx = new Float32Array(NG); gz = new Float32Array(NG); gtx = new Float32Array(NG); gtz = new Float32Array(NG); ghw = new Float32Array(NG); gtop = new Float32Array(NG);
+  for (let i = 0; i < NG; i++) {
+    const g = G[i]; const s = Math.sin(g.tilt), c = Math.cos(g.tilt);
+    const nxh = -g.tz, nzh = g.tx;                       // horizontal normal
+    const ux = nxh * s, uy = c, uz = nzh * s;           // tilted up
+    // normal = t x up
+    // normal = t x u, t = (tx, 0, tz)
+    let nx = -g.tz * uy, ny = g.tz * ux - g.tx * uz, nz = g.tx * uy;
+    const nl = Math.hypot(nx, ny, nz); nx /= nl; ny /= nl; nz /= nl;
+    g.nx = nx; g.ny = ny; g.nz = nz; g.top = 0.012 + g.h * c;
+    g.lastCt = complement(dichroicR(g.l0, 1)); g.lastCr = dichroicR(g.l0, 1);
+    gx[i] = g.x; gz[i] = g.z; gtx[i] = g.tx; gtz[i] = g.tz; ghw[i] = g.w / 2; gtop[i] = g.top;
+    const wv = g.shape.map(p => [g.x + g.tx * p[0] + ux * p[1], 0.012 + uy * p[1], g.z + g.tz * p[0] + uz * p[1]]);
+    for (let k = 1; k < wv.length - 1; k++) {
+      [wv[0], wv[k], wv[k + 1]].forEach(p => { pos.push(p[0], p[1], p[2]); nor.push(nx, ny, nz); meta.push(g.l0, i, g.pick); });
+    }
+    for (let k = 0; k < wv.length; k++) {
+      const p = wv[k], q = wv[(k + 1) % wv.length];
+      epos.push(p[0], p[1], p[2], q[0], q[1], q[2]);
+      enor.push(nx, ny, nz, nx, ny, nz); emeta.push(g.l0, i, g.pick, g.l0, i, g.pick);
+    }
+    dummy.position.set(g.x, 0.006, g.z); dummy.rotation.set(0, -Math.atan2(g.tz, g.tx), 0);
+    dummy.scale.set(Math.min(g.w * 0.7, 0.07), 0.012, 0.018); dummy.updateMatrix();
+    stands.setMatrixAt(i, dummy.matrix);
+  }
+  dummy.scale.set(1, 1, 1);
+  const fg = new THREE.BufferGeometry();
+  fg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  fg.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+  fg.setAttribute('aMeta', new THREE.Float32BufferAttribute(meta, 3));
+  const eg = new THREE.BufferGeometry();
+  eg.setAttribute('position', new THREE.Float32BufferAttribute(epos, 3));
+  eg.setAttribute('normal', new THREE.Float32BufferAttribute(enor, 3));
+  eg.setAttribute('aMeta', new THREE.Float32BufferAttribute(emeta, 3));
+  const faces = new THREE.Mesh(fg, glassFaceMat); faces.renderOrder = 2;
+  const edges = new THREE.LineSegments(eg, glassEdgeMat); edges.renderOrder = 3;
+  glassGroup.add(stands, faces, edges);
+  scene.add(glassGroup);
+
+  /* --- optics buffers --- */
+  bMax = new Float32Array(NG); glowAcc = new Float32Array(NG * 3); flash = new Float32Array(NG);
+  onState = new Uint8Array(NG); lastCol = new Float32Array(NG * 3);
+  for (let i = 0; i < NG; i++) { const c = G[i].pick ? G[i].lastCr : G[i].lastCt; lastCol[i * 3] = c[0]; lastCol[i * 3 + 1] = c[1]; lastCol[i * 3 + 2] = c[2]; }
+  if (dataTex) dataTex.dispose();
+  dataArr = new Float32Array(Math.max(NG, 1) * 4 * 4);
+  dataTex = new THREE.DataTexture(dataArr, Math.max(NG, 1), 4, THREE.RGBAFormat, THREE.FloatType);
+  dataTex.minFilter = THREE.NearestFilter; dataTex.magFilter = THREE.NearestFilter; dataTex.needsUpdate = true;
+  glassUniforms.uData.value = dataTex; glassUniforms.uN.value = Math.max(NG, 1);
+
+  cartS = rnd() * L; lastJoint = Math.floor(cartS / JOINT);
+  Music.onRebuild();
+  updateCode();
+}
+
+/* ================= cart motion ================= */
+let cartS = 0, curSpeed = 0, paused = false, lastJoint = 0, jointT = 0, stopT = 0, nextStop = 14, time = 0;
+const _p = new THREE.Vector3(), _t = new THREE.Vector3(), _v = new THREE.Vector3(), _q = new THREE.Vector3();
+const cartFwd = new THREE.Vector3(), cartSide = new THREE.Vector3();
+
+function updateCart(dt) {
+  let target = paused ? 0 : P.speed;
+  if (P.stops && !paused) {
+    nextStop -= dt;
+    if (nextStop <= 0) { stopT = 3.2; nextStop = 10 + Math.random() * 15; }
+    if (stopT > 0) { stopT -= dt; target = 0; }
+  }
+  curSpeed += (target - curSpeed) * Math.min(1, dt * 1.6);
+  cartS = (cartS + curSpeed * dt) % L; if (cartS < 0) cartS += L;
+  const j = Math.floor(cartS / JOINT);
+  if (j !== lastJoint) { lastJoint = j; jointT = 0; if (curSpeed > 0.03) Music.joint(curSpeed); }
+  jointT += dt;
+  const u = cartS / L;
+  curve.getPointAt(u, _p); curve.getTangentAt(u, _t);
+  const bob = 0.0009 * Math.exp(-jointT * 14) * Math.sin(jointT * 70) * Math.min(1, curSpeed * 5);
+  cart.position.set(_p.x, 0.0083 + bob, _p.z);
+  cart.lookAt(_v.set(_p.x + _t.x, cart.position.y, _p.z + _t.z));
+  cart.rotation.z += bob * 4;
+  cart.updateMatrixWorld();
+  cartFwd.set(_t.x, 0, _t.z).normalize();
+  cartSide.set(cartFwd.z, 0, -cartFwd.x); // local +x (left)
+
+  const breath = Music.on ? 1 + 0.05 * Math.sin(time * Math.PI * 2 * 0.08) : 1;
+  const half = P.cone * Math.PI / 360;
+  const scan = P.scan ? Math.sin(time * 0.45) * 0.45 : 0;
+  const yaw = P.yaw * Math.PI / 180 + scan, pitch = P.pitch * Math.PI / 180;
+  const defs = [
+    { lp:[0.04, 0.045, 0.025], d:[Math.cos(pitch) * Math.cos(yaw), Math.sin(pitch), Math.cos(pitch) * Math.sin(yaw)], on:true },
+    { lp:[-0.04, 0.045, 0.025], d:[-Math.cos(pitch) * Math.cos(yaw), Math.sin(pitch), Math.cos(pitch) * Math.sin(yaw)], on:true },
+    { lp:[0, 0.042, 0.064], d:[0, Math.sin(pitch), Math.cos(pitch)], on:P.front }
+  ];
+  cart.userData.frontLens.visible = P.front;
+  defs.forEach((df, i) => {
+    const Lt = lights[i];
+    Lt.on = df.on;
+    Lt.pos.set(df.lp[0], df.lp[1], df.lp[2]); cart.localToWorld(Lt.pos);
+    Lt.dir.set(df.d[0], df.d[1], df.d[2]).transformDirection(cart.matrixWorld);
+    Lt.spot.visible = df.on;
+    Lt.spot.position.copy(Lt.pos);
+    Lt.spot.target.position.copy(Lt.pos).add(_q.copy(Lt.dir));
+    Lt.spot.target.updateMatrixWorld();
+    Lt.spot.angle = half * 1.15; Lt.spot.penumbra = 0.4;
+    Lt.spot.intensity = (i === 2 ? 3.5 : 6) * P.intensity * breath;
+    glassUniforms.uLPos.value[i].copy(Lt.pos); glassUniforms.uLDir.value[i].copy(Lt.dir);
+    glassUniforms.uLOn.value[i] = df.on ? 1 : 0;
+  });
+  glassUniforms.uCosO.value = Math.cos(half); glassUniforms.uCosI.value = Math.cos(half * 0.55);
+  glassUniforms.uInt.value = P.intensity * breath;
+  beamUniforms.uSmoke.value = P.smoke;
+  return breath;
+}
+
+/* ================= optics solver ================= */
+const hits = [];
+const mat4 = new THREE.Matrix4();
+let patchN = 0, beamN = 0, totalLight = 0;
+const secOf = { map:new Map() };
+
+function intersectRoom(ox, oy, oz, rx, ry, rz) {
+  let t = 1e9, nx = 0, ny = 0, nz = 0, tt;
+  if (ry < -1e-5) { tt = -oy / ry; if (tt < t) { t = tt; nx = 0; ny = 1; nz = 0; } }
+  if (ry > 1e-5) { tt = (H - oy) / ry; if (tt < t) { t = tt; nx = 0; ny = -1; nz = 0; } }
+  if (rx > 1e-5) { tt = (W / 2 - ox) / rx; if (tt < t) { t = tt; nx = -1; ny = 0; nz = 0; } }
+  if (rx < -1e-5) { tt = (-W / 2 - ox) / rx; if (tt < t) { t = tt; nx = 1; ny = 0; nz = 0; } }
+  if (rz > 1e-5) { tt = (D / 2 - oz) / rz; if (tt < t) { t = tt; nx = 0; ny = 0; nz = -1; } }
+  if (rz < -1e-5) { tt = (-D / 2 - oz) / rz; if (tt < t) { t = tt; nx = 0; ny = 0; nz = 1; } }
+  return { t, px:ox + rx * t, py:oy + ry * t, pz:oz + rz * t, nx, ny, nz };
+}
+
+function traceGlass(self, ox, oy, oz, rx, ry, rz, maxT) {
+  let best = maxT, bi = -1;
+  for (let j = 0; j < NG; j++) {
+    if (j === self) continue;
+    const ax = gx[j] - gtx[j] * ghw[j], az = gz[j] - gtz[j] * ghw[j];
+    const ex = gtx[j] * ghw[j] * 2, ez = gtz[j] * ghw[j] * 2;
+    const den = rx * ez - rz * ex; if (Math.abs(den) < 1e-6) continue;
+    const wx = ax - ox, wz = az - oz;
+    const t = (wx * ez - wz * ex) / den; if (t < 0.015 || t >= best) continue;
+    const s = (wx * rz - wz * rx) / den; if (s < 0 || s > 1) continue;
+    const y = oy + ry * t; if (y < 0.014 || y > gtop[j] * 0.75) continue;
+    best = t; bi = j;
+  }
+  return bi < 0 ? null : { i:bi, t:best };
+}
+
+function setBeam(idx, ox, oy, oz, dx, dy, dz, len, r, cr, cg, cb) {
+  // basis: x,z perpendicular to dir, y along dir
+  let ax = 0, ay = 1, az = 0; if (Math.abs(dy) > 0.9) { ax = 1; ay = 0; }
+  let xx = dy * az - dz * ay, xy = dz * ax - dx * az, xz = dx * ay - dy * ax; const xl = Math.hypot(xx, xy, xz) || 1; xx /= xl; xy /= xl; xz /= xl;
+  const zx = xy * dz - xz * dy, zy = xz * dx - xx * dz, zz = xx * dy - xy * dx;
+  mat4.set(xx * r, dx * len, zx * r, ox, xy * r, dy * len, zy * r, oy, xz * r, dz * len, zz * r, oz, 0, 0, 0, 1);
+  beamMesh.setMatrixAt(idx, mat4);
+  beamColor.array[idx * 3] = cr; beamColor.array[idx * 3 + 1] = cg; beamColor.array[idx * 3 + 2] = cb;
+}
+
+function addPatch(room, rx, ry, rz, width, cr, cg, cb, seed) {
+  if (patchN >= MAX_PATCH || room.t > 9) return;
+  const dn = rx * room.nx + ry * room.ny + rz * room.nz; const sg = Math.abs(dn);
+  let ix = rx - room.nx * dn, iy = ry - room.ny * dn, iz = rz - room.nz * dn; let il = Math.hypot(ix, iy, iz);
+  if (il < 1e-3) { ix = room.ny; iy = room.nz; iz = room.nx; il = 1; }
+  ix /= il; iy /= il; iz /= il;
+  let len = width / Math.max(sg, 0.07); len = clamp(len, width, 1.7);
+  const energy = clamp(0.35 + sg * 3, 0.35, 1.5);
+  const xx = room.ny * iz - room.nz * iy, xy = room.nz * ix - room.nx * iz, xz = room.nx * iy - room.ny * ix;
+  const off = 0.0012 + patchN * 0.00002;
+  const cx = room.px + ix * len * 0.42 + room.nx * off, cy = room.py + iy * len * 0.42 + room.ny * off, cz = room.pz + iz * len * 0.42 + room.nz * off;
+  mat4.set(xx * width, ix * len, room.nx, cx, xy * width, iy * len, room.ny, cy, xz * width, iz * len, room.nz, cz, 0, 0, 0, 1);
+  patchMesh.setMatrixAt(patchN, mat4);
+  patchColor.array[patchN * 3] = cr * energy; patchColor.array[patchN * 3 + 1] = cg * energy; patchColor.array[patchN * 3 + 2] = cb * energy;
+  patchSeed.array[patchN] = seed;
+  patchN++;
+}
+
+function solveOptics(dt, breath) {
+  if (!NG) { patchMesh.count = 0; beamMesh.count = 0; return []; }
+  dataArr.fill(0); bMax.fill(0); glowAcc.fill(0);
+  hits.length = 0;
+  const half = P.cone * Math.PI / 360, tanH = Math.tan(half);
+  for (let li = 0; li < 3; li++) {
+    const Lt = lights[li]; if (!Lt.on) continue;
+    const lp = Lt.pos, ld = Lt.dir;
+    const hl = Math.hypot(ld.x, ld.z) || 1e-4, hx = ld.x / hl, hz = ld.z / hl, slope = ld.y / hl;
+    const cand = [];
+    for (let i = 0; i < NG; i++) {
+      const dx = gx[i] - lp.x, dz = gz[i] - lp.z; const dist = Math.hypot(dx, dz);
+      if (dist < 0.03 || dist > RANGE) continue;
+      const dot = (dx * hx + dz * hz) / dist; if (dot <= 0.6) continue;
+      const crs = (hx * dz - hz * dx) / dist; const ang = Math.atan2(crs, dot);
+      const angW = ghw[i] * Math.abs(gtx[i] * (-dz / dist) + gtz[i] * (dx / dist)) / dist;
+      if (Math.abs(ang) - angW > half) continue;
+      const yc = lp.y + slope * dist, spread = dist * tanH + 0.004;
+      const lo = Math.max(yc - spread, 0.012), hi = Math.min(yc + spread, gtop[i] * 0.92);
+      if (hi <= lo) continue;
+      const vf = Math.min(1, (hi - lo) / (2 * spread) * 1.6);
+      const af = 1 - clamp((Math.abs(ang) - angW * 0.5) / half, 0, 1);
+      const att = 1 / (1 + dist * dist * 0.35);
+      const b = af * af * att * (0.35 + 0.65 * vf) * (li === 2 ? 0.7 : 1);
+      if (b < 0.01) continue;
+      cand.push({ i, dist, ang, angW, b, yc });
+    }
+    cand.sort((a, b) => a.dist - b.dist);
+    for (let k = 0; k < cand.length; k++) {
+      const c = cand[k], g = G[c.i];
+      let tr = 1, tg = 1, tb = 1;
+      for (let j = 0; j < k; j++) {
+        const o = cand[j];
+        if (Math.abs(o.ang - c.ang) < o.angW * 0.9) { const ct = G[o.i].lastCt; tr *= 0.12 + 0.72 * ct[0]; tg *= 0.12 + 0.72 * ct[1]; tb *= 0.12 + 0.72 * ct[2]; }
+      }
+      const ox = g.x, oy = clamp(c.yc, 0.02, g.top * 0.8), oz = g.z;
+      let dx = ox - lp.x, dy = oy - lp.y, dz = oz - lp.z; const dl = Math.hypot(dx, dy, dz); dx /= dl; dy /= dl; dz /= dl;
+      let nx = g.nx, ny = g.ny, nz = g.nz; let dn = dx * nx + dy * ny + dz * nz; if (dn > 0) { nx = -nx; ny = -ny; nz = -nz; dn = -dn; }
+      const cosI = -dn; const cr = dichroicR(g.l0, cosI); const ct = complement(cr); const R = reflectance(cosI);
+      g.lastCr = cr; g.lastCt = ct;
+      const tAvg = (tr + tg + tb) / 3;
+      const bb = c.b * Math.min(1, tAvg * 1.2);
+      const o4 = (li * NG + c.i) * 4; dataArr[o4] = tr; dataArr[o4 + 1] = tg; dataArr[o4 + 2] = tb; dataArr[o4 + 3] = 1;
+      const gc = g.pick ? cr : ct;
+      const gw = bb * 0.9 * P.intensity;
+      glowAcc[c.i * 3] += gc[0] * gw * tr; glowAcc[c.i * 3 + 1] += gc[1] * gw * tg; glowAcc[c.i * 3 + 2] += gc[2] * gw * tb;
+      lastCol[c.i * 3] = gc[0]; lastCol[c.i * 3 + 1] = gc[1]; lastCol[c.i * 3 + 2] = gc[2];
+      if (bb > bMax[c.i]) bMax[c.i] = bb;
+      hits.push({ gi:c.i, b:bb, ox, oy, oz, dx, dy, dz, nx, ny, nz, cr, ct, R, tr, tg, tb, dist:c.dist });
+    }
+  }
+
+  /* bounces → patches, rays, secondary glow */
+  hits.sort((a, b) => b.b - a.b);
+  const q = QUALITY[P.quality];
+  const K = Math.min(hits.length, q.k);
+  patchN = 0; beamN = 3;
+  secOf.map.clear();
+  const I = P.intensity * breath;
+  for (let k = 0; k < K; k++) {
+    const h = hits[k];
+    const dd = h.dx * h.nx + h.dy * h.ny + h.dz * h.nz;
+    const rx = h.dx - 2 * dd * h.nx, ry = h.dy - 2 * dd * h.ny, rz = h.dz - 2 * dd * h.nz;
+    const room = intersectRoom(h.ox, h.oy, h.oz, rx, ry, rz);
+    const sec = traceGlass(h.gi, h.ox, h.oy, h.oz, rx, ry, rz, Math.min(room.t, 3));
+    const e = h.b * h.R * I;
+    const cr = h.cr[0] * e * h.tr, cg = h.cr[1] * e * h.tg, cb = h.cr[2] * e * h.tb;
+    const g = G[h.gi];
+    const width = g.w * 0.75 + h.dist * tanH * 0.35;
+    let rayLen;
+    if (sec) {
+      const s3 = sec.i * 3; glowAcc[s3] += cr * 0.8; glowAcc[s3 + 1] += cg * 0.8; glowAcc[s3 + 2] += cb * 0.8;
+      secOf.map.set(h.gi, sec.i);
+      rayLen = sec.t;
+    } else {
+      addPatch(room, rx, ry, rz, width + room.t * tanH * 0.3, cr * 2.0, cg * 2.0, cb * 2.0, g.seed);
+      rayLen = Math.min(room.t, 3.5);
+    }
+    if (beamN < 3 + q.rays && beamN < MAX_BEAM) {
+      setBeam(beamN++, h.ox, h.oy, h.oz, rx, ry, rz, rayLen, g.w * 0.45 + rayLen * tanH * 0.25, cr * 0.22, cg * 0.22, cb * 0.22);
+    }
+    if (k < K * 0.6) {
+      const room2 = intersectRoom(h.ox, h.oy, h.oz, h.dx, h.dy, h.dz);
+      const et = h.b * (1 - h.R) * I * 0.9;
+      addPatch(room2, h.dx, h.dy, h.dz, width + room2.t * tanH * 0.4, h.ct[0] * et * h.tr, h.ct[1] * et * h.tg, h.ct[2] * et * h.tb, (g.seed * 7.3) % 1);
+    }
+  }
+  /* main beams */
+  const rEnd = RANGE * tanH;
+  for (let i = 0; i < 3; i++) {
+    const Lt = lights[i];
+    if (!Lt.on) { setBeam(i, 0, -10, 0, 0, 1, 0, 0.001, 0.001, 0, 0, 0); continue; }
+    const k = (i === 2 ? 0.07 : 0.11) * I;
+    setBeam(i, Lt.pos.x, Lt.pos.y, Lt.pos.z, Lt.dir.x, Lt.dir.y, Lt.dir.z, RANGE, rEnd, 1.0 * k, 0.96 * k, 0.92 * k);
+  }
+  patchMesh.count = patchN; patchMesh.instanceMatrix.needsUpdate = true; patchColor.needsUpdate = true; patchSeed.needsUpdate = true;
+  beamMesh.count = beamN; beamMesh.instanceMatrix.needsUpdate = true; beamColor.needsUpdate = true;
+
+  /* glow row + flash */
+  let sum = 0;
+  const decay = Math.exp(-dt * 2.6);
+  for (let i = 0; i < NG; i++) {
+    flash[i] *= decay;
+    const o = (3 * NG + i) * 4, f = flash[i] * 1.4;
+    dataArr[o] = glowAcc[i * 3] + lastCol[i * 3] * f;
+    dataArr[o + 1] = glowAcc[i * 3 + 1] + lastCol[i * 3 + 1] * f;
+    dataArr[o + 2] = glowAcc[i * 3 + 2] + lastCol[i * 3 + 2] * f;
+    dataArr[o + 3] = 1;
+    sum += bMax[i];
+  }
+  dataTex.needsUpdate = true;
+  totalLight += (clamp(sum / 6, 0, 1) - totalLight) * Math.min(1, dt / 2);
+
+  /* note events with hysteresis */
+  const events = [];
+  for (let i = 0; i < NG; i++) {
+    const b = bMax[i];
+    if (!onState[i] && b > 0.35) { onState[i] = 1; events.push(i); }
+    else if (onState[i] && b < 0.2) onState[i] = 0;
+  }
+  events.sort((a, b) => bMax[b] - bMax[a]);
+  return events.slice(0, 3);
+}
+
+/* ================= music ================= */
+const _pv = new THREE.Vector3();
+function panOf(i) { _pv.set(gx[i], 0.1, gz[i]).project(camera); return clamp(_pv.x, -1, 1) * 0.85; }
+
+const Music = {
+  ready:false, on:false, starting:false,
+  rootMidi:50, voices:[], vi:0, slots:new Map(), degIdx:0,
+  available: !!window.Tone,
+  scale() {
+    if (P.mode !== 'auto') return MODES[P.mode];
+    if (P.preset === 'chaos') return MODES.whole;
+    return ({ spectrum:MODES.pent, ice:MODES.lydian, warm:MODES.dorian, mono:MODES.single })[P.palette] || MODES.pent;
+  },
+  async init() {
+    const T = window.Tone;
+    await T.start();
+    const limiter = new T.Limiter(-1).toDestination();
+    this.master = new T.Gain(0).connect(limiter);
+    this.reverb = new T.Reverb({ decay:8, preDelay:0.03, wet:1 });
+    await this.reverb.generate();
+    this.reverb.connect(this.master);
+    const send = (node, amt) => { const g = new T.Gain(amt); node.connect(g); g.connect(this.reverb); return g; };
+
+    this.droneGain = new T.Gain(0).connect(this.master); send(this.droneGain, 0.6);
+    this.droneBreath = new T.Gain(1).connect(this.droneGain);
+    this.droneFilter = new T.Filter(420, 'lowpass', -24).connect(this.droneBreath);
+    this.drone = new T.PolySynth(T.Synth, { oscillator:{ type:'fatsawtooth', count:3, spread:22 }, envelope:{ attack:5, decay:1, sustain:1, release:7 } }).connect(this.droneFilter);
+    this.drone.volume.value = -18;
+    this.droneLfo = new T.LFO(0.08, 0.75, 1.25).start(); // breath, mirrored in the beams
+    this.droneLfo.connect(this.droneBreath.gain);
+
+    this.bellBus = new T.Gain(0.85).connect(this.master); send(this.bellBus, 0.75);
+    this.delay = new T.PingPongDelay('8n', 0.32); this.delay.wet.value = 1;
+    const dsend = new T.Gain(0.22); this.bellBus.connect(dsend); dsend.connect(this.delay); this.delay.connect(this.master);
+    for (let i = 0; i < 8; i++) {
+      const pan = new T.Panner(0).connect(this.bellBus);
+      const s = new T.FMSynth({ harmonicity:3.01, modulationIndex:6, oscillator:{ type:'sine' },
+        envelope:{ attack:0.004, decay:3.2, sustain:0, release:3 }, modulation:{ type:'sine' },
+        modulationEnvelope:{ attack:0.002, decay:0.7, sustain:0, release:0.6 } }).connect(pan);
+      s.volume.value = -10;
+      this.voices.push({ s, pan });
+    }
+
+    this.pulseGain = new T.Gain(0).connect(this.master); send(this.pulseGain, 0.15);
+    this.pulseFilter = new T.Filter(700, 'lowpass').connect(this.pulseGain);
+    this.pulse = new T.MembraneSynth({ pitchDecay:0.018, octaves:2.5, envelope:{ attack:0.001, decay:0.22, sustain:0, release:0.1 } }).connect(this.pulseFilter);
+    this.pulse.volume.value = -8;
+
+    this.airGain = new T.Gain(0).connect(this.master); send(this.airGain, 0.5);
+    this.air = new T.Noise('pink');
+    this.airFilter = new T.AutoFilter({ frequency:0.05, baseFrequency:260, octaves:3.2 }).start();
+    this.air.connect(this.airFilter); this.airFilter.connect(this.airGain); this.air.volume.value = -22; this.air.start();
+
+    T.Transport.bpm.value = this.bpm();
+    T.Transport.scheduleRepeat(t => this.chord(t), '8m', 0);
+    T.Transport.start('+0.05');
+    this.ready = true;
+  },
+  bpm() { return clamp(Math.max(curSpeed, P.speed * 0.5) / JOINT * 60, 40, 110); },
+  chord(time) {
+    const sc = this.scale(), prog = [0, 3, 4, 2];
+    const deg = prog[this.degIdx++ % prog.length];
+    const root = this.rootMidi + sc[deg % sc.length] + 12 * Math.floor(deg / sc.length);
+    const third = sc.indexOf(4) >= 0 ? 4 : (sc.indexOf(3) >= 0 ? 3 : 7);
+    const notes = [root - 12, root - 5, root + third].map(m => window.Tone.Frequency(m, 'midi').toFrequency());
+    this.drone.releaseAll(time);
+    this.drone.triggerAttack(notes, time + 0.05, 0.6);
+  },
+  onRebuild() {
+    this.rootMidi = 48 + (hashStr(P.seed) % 8);
+    if (this.ready && this.on) { this.degIdx = 0; this.chord(window.Tone.now() + 0.1); }
+  },
+  async start() {
+    if (!this.available || this.starting) return false;
+    if (!this.ready) { this.starting = true; try { await this.init(); } catch (e) { this.starting = false; toast('Звук не запустился: браузер заблокировал аудио'); return false; } this.starting = false; }
+    this.on = true; this.mix(true);
+    this.chord(window.Tone.now() + 0.05);
+    return true;
+  },
+  stop() {
+    this.on = false;
+    if (this.ready) { this.master.gain.rampTo(0, 1.2); this.drone.releaseAll(); }
+  },
+  mix(fadeIn) {
+    if (!this.ready) return;
+    const T = window.Tone;
+    if (this.on) this.master.gain.rampTo(P.volume, fadeIn ? 3 : 0.2);
+    this.bellBus.gain.rampTo(P.vGlass, 0.2);
+    this.pulseGain.gain.rampTo(P.vPulse, 0.2);
+    this.airGain.gain.rampTo(P.vAir * (0.15 + P.smoke), 0.6);
+    const dec = Math.round((5 + P.smoke * 5) * 2) / 2;
+    if (dec !== this.lastDecay) { this.lastDecay = dec; this.reverb.decay = dec; }
+    T.Transport.bpm.rampTo(this.bpm(), 1);
+  },
+  tick() {   // ~10 Hz
+    if (!this.ready || !this.on) return;
+    const T = window.Tone;
+    this.droneGain.gain.rampTo(P.vDrone * (0.35 + 0.65 * totalLight), 0.5);
+    this.droneFilter.frequency.rampTo(260 + 1500 * totalLight, 0.5);
+    this.airFilter.baseFrequency = 220 + 260 * (P.scan ? 1 + Math.sin(time * 0.45) : 1);
+    T.Transport.bpm.rampTo(this.bpm(), 1.5);
+  },
+  joint(speed) {
+    if (!this.ready || !this.on) return;
+    const T = window.Tone;
+    const f = T.Frequency(this.rootMidi - 24, 'midi').toFrequency();
+    this.pulse.triggerAttackRelease(f, '32n', T.now() + 0.01, clamp(0.25 + speed * 1.2, 0.2, 0.9));
+  },
+  slotTime(base) {
+    const T = window.Tone; const step = T.Time('8n').toSeconds();
+    let t = base;
+    for (let n = 0; n < 4; n++) {
+      const key = Math.round(t * 1000);
+      const c = this.slots.get(key) || 0;
+      if (c < 3) { this.slots.set(key, c + 1); return t; }
+      t += step;
+    }
+    return -1;
+  },
+  note(gi, b) {
+    if (!this.ready || !this.on || !NG) return;
+    const T = window.Tone; const now = T.now();
+    if (this.slots.size > 64) { for (const k of this.slots.keys()) if (k / 1000 < now) this.slots.delete(k); }
+    let t = this.slotTime(T.Transport.nextSubdivision('8n'));
+    if (t < 0) return;
+    t = Math.max(now + 0.02, t + (Math.random() - 0.5) * 0.03);
+    const sc = this.scale(); const g = G[gi];
+    const x = clamp(1 - (g.l0 - 430) / 240, 0, 0.999);
+    const idx = Math.floor(x * sc.length * 2);
+    const midi = this.rootMidi + 12 + sc[idx % sc.length] + 12 * Math.floor(idx / sc.length);
+    const vel = clamp(0.25 + 0.75 * b, 0.2, 1);
+    this.play(midi, t, vel, panOf(gi), 3 + 6 * b, gi);
+    const sec = secOf.map.get(gi);
+    if (sec !== undefined) {
+      const t2 = t + T.Time('8n').toSeconds();
+      this.play(midi + 12, t2, vel * 0.35, panOf(sec), 2, sec);
+    }
+  },
+  play(midi, t, vel, pan, mi, gi) {
+    const T = window.Tone;
+    const v = this.voices[this.vi++ % this.voices.length];
+    v.pan.pan.setValueAtTime(pan, t);
+    v.s.modulationIndex.setValueAtTime(mi, t);
+    v.s.triggerAttackRelease(T.Frequency(midi, 'midi').toFrequency(), '2n', t, vel);
+    T.Draw.schedule(() => { if (gi < NG) flash[gi] = Math.min(1.5, flash[gi] + vel); }, t);
+  }
+};
+
+/* ================= camera director ================= */
+let camMode = P.camera, shotIdx = 0, shotT = 0, ambush = null;
+const desPos = new THREE.Vector3(), desTgt = new THREE.Vector3();
+const SHOT_LEN = 11;
+function setCamera(mode) {
+  camMode = mode; P.camera = mode;
+  controls.enabled = mode === 'orbit';
+  if (mode === 'orbit') { controls.target.copy(camTarget); controls.update(); }
+  shotT = 0; ambush = null;
+  document.getElementById('bCam').textContent = 'Камера: ' + CAM_NAMES[mode];
+  syncControl('camera');
+}
+function trackPoint(s, out) { return curve.getPointAt(((s % L) + L) % L / L, out); }
+function updateCamera(dt) {
+  if (camMode === 'orbit') { controls.update(); camTarget.copy(controls.target); return; }
+  const p = cart.position, f = cartFwd, sd = cartSide;
+  let k = 2.4;
+  if (camMode === 'onboard') {
+    desPos.copy(p).addScaledVector(f, -0.02).addScaledVector(sd, 0.012); desPos.y = 0.085;
+    desTgt.copy(p).addScaledVector(f, 0.6).addScaledVector(sd, 0.2); desTgt.y = 0.04;
+    k = 12;
+  } else if (camMode === 'chase') {
+    desPos.copy(p).addScaledVector(f, -0.55).addScaledVector(sd, 0.12); desPos.y = 0.3;
+    desTgt.copy(p).addScaledVector(f, 0.35); desTgt.y = 0.03;
+    k = 3;
+  } else {
+    shotT += dt;
+    if (shotT > SHOT_LEN) { shotT = 0; shotIdx = (shotIdx + 1) % 4; ambush = null; }
+    if (shotIdx === 0) {
+      desPos.copy(p).addScaledVector(sd, -0.32).addScaledVector(f, -0.12); desPos.y = 0.055;
+      desTgt.copy(p).addScaledVector(f, 0.45); desTgt.y = 0.05; k = 4;
+    } else if (shotIdx === 1) {
+      const a = time * 0.035; desPos.set(Math.cos(a) * 4.1, 2.3, Math.sin(a) * 3.0); desTgt.set(0, 0, 0); k = 1.2;
+    } else if (shotIdx === 2) {
+      if (!ambush) {
+        const ap = trackPoint(cartS + 1.6 + curSpeed * 4, new THREE.Vector3());
+        const at = curve.getTangentAt((((cartS + 1.6) % L) + L) % L / L);
+        ambush = new THREE.Vector3(ap.x - at.z * 0.42, 0.075, ap.z + at.x * 0.42);
+      }
+      desPos.copy(ambush); desTgt.copy(p); desTgt.y = 0.05; k = 2;
+    } else {
+      desPos.copy(p).addScaledVector(f, -0.65).addScaledVector(sd, 0.35); desPos.y = 0.85;
+      desTgt.copy(p).addScaledVector(f, 0.6); k = 1.6;
+    }
+  }
+  const a = 1 - Math.exp(-dt * k);
+  camera.position.lerp(desPos, a);
+  camTarget.lerp(desTgt, a);
+  camera.position.y = Math.max(camera.position.y, 0.02);
+  camera.lookAt(camTarget);
+}
+renderer.domElement.addEventListener('pointerdown', () => { if (camMode !== 'orbit') setCamera('orbit'); });
+
+/* ================= UI ================= */
+const $ = id => document.getElementById(id);
+const fmt = {
+  count:v => v, attract:v => (+v).toFixed(2) + ' м', sizeScale:v => '×' + (+v).toFixed(1), speed:v => (+v).toFixed(2) + ' м/с',
+  cone:v => v + '°', intensity:v => (+v).toFixed(2), pitch:v => (v > 0 ? '+' : '') + (+v).toFixed(1) + '°', yaw:v => (v > 0 ? '+' : '') + v + '°',
+  smoke:v => Math.round(v * 100) + '%', volume:v => Math.round(v * 100) + '%', vDrone:v => Math.round(v * 100) + '%', vGlass:v => Math.round(v * 100) + '%',
+  vPulse:v => Math.round(v * 100) + '%', vAir:v => Math.round(v * 100) + '%', bloom:v => (+v).toFixed(2), grain:v => Math.round(v * 100) + '%'
+};
+const inputs = Array.from(document.querySelectorAll('[data-k]'));
+function paintFill(el) {
+  const f = el.parentElement && el.parentElement.querySelector('.fill'); if (!f) return;
+  const pct = (el.value - el.min) / (el.max - el.min);
+  f.style.width = 'calc(' + (pct * 100) + '% - ' + (pct * 13) + 'px + 6px)';
+}
+function syncControl(k) {
+  inputs.filter(el => el.dataset.k === k).forEach(el => {
+    if (el.type === 'checkbox') el.checked = !!P[k]; else el.value = P[k];
+    if (el.type === 'range') paintFill(el);
+  });
+  const out = document.querySelector('[data-out="' + k + '"]'); if (out && fmt[k]) out.textContent = fmt[k](P[k]);
+}
+function syncAll() { inputs.forEach(el => syncControl(el.dataset.k)); }
+let rebuildTimer = 0;
+function scheduleRebuild() { clearTimeout(rebuildTimer); rebuildTimer = setTimeout(build, 120); }
+inputs.forEach(el => {
+  const k = el.dataset.k;
+  const handler = live => {
+    let v = el.type === 'checkbox' ? el.checked : el.value;
+    if (el.type === 'range') v = parseFloat(v);
+    if (k === 'preset') { applyPreset(v); return; }
+    P[k] = v;
+    const out = document.querySelector('[data-out="' + k + '"]'); if (out && fmt[k]) out.textContent = fmt[k](v);
+    if (el.type === 'range') paintFill(el);
+    if (REBUILD.has(k)) { if (!live || el.type !== 'range') scheduleRebuild(); return; }
+    applyLive(k);
+  };
+  if (el.type === 'range') el.addEventListener('input', () => handler(true));
+  el.addEventListener('change', () => handler(false));
+});
+function applyLive(k) {
+  if (k === 'camera') setCamera(P.camera);
+  else if (k === 'quality') resize();
+  else if (k === 'music') { P.music ? startMusic() : stopMusic(); }
+  else if (k === 'mode') Music.onRebuild();
+  Music.mix(false);
+}
+function applyPreset(name) {
+  Object.assign(P, PRESETS[name]); P.preset = name;
+  syncAll(); build();
+  toast('Пресет: ' + document.querySelector('[data-k="preset"] option[value="' + name + '"]').textContent);
+}
+
+/* scene code */
+function makeCode() { return [P.shape, P.count, P.palette, Math.round(P.attract * 100), Math.round(P.sizeScale * 10), P.seed].join('.'); }
+function updateCode() { $('codeInput').value = makeCode(); }
+function parseCode(s) {
+  const parts = String(s).trim().split('.');
+  if (parts.length < 6) return false;
+  const [shape, count, palette, attract, size] = parts; const seed = parts.slice(5).join('.');
+  if (!PALETTES[palette] || !['clover','oval','wave','eight','random'].includes(shape)) return false;
+  P.shape = shape; P.count = clamp(parseInt(count, 10) || 250, 40, 400); P.palette = palette;
+  P.attract = clamp((parseInt(attract, 10) || 40) / 100, 0.15, 1.2); P.sizeScale = clamp((parseInt(size, 10) || 10) / 10, 0.6, 1.8);
+  P.seed = seed || 'lumen-1';
+  return true;
+}
+$('codeApply').addEventListener('click', () => {
+  if (parseCode($('codeInput').value)) { syncAll(); build(); toast('Сцена собрана по коду'); }
+  else toast('Код не распознан: нужен формат вида clover.300.spectrum.40.10.lumen-482');
+});
+$('codeInput').addEventListener('keydown', e => { if (e.key === 'Enter') $('codeApply').click(); });
+$('codeCopy').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(makeCode()); toast('Код скопирован'); }
+  catch (e) { $('codeInput').select(); toast('Выделил код: скопируйте его сочетанием Ctrl+C'); }
+});
+function newSeed() {
+  const w = SEED_WORDS[Math.floor(Math.random() * SEED_WORDS.length)];
+  P.seed = w + '-' + (100 + Math.floor(Math.random() * 900));
+  build(); toast('Новая сцена: ' + P.seed);
+}
+
+/* dock */
+function setPaused(v) { paused = v; $('bPause').textContent = paused ? 'Дальше' : 'Пауза'; }
+$('bPause').addEventListener('click', () => setPaused(!paused));
+$('bCam').addEventListener('click', () => setCamera(CAM_ORDER[(CAM_ORDER.indexOf(camMode) + 1) % CAM_ORDER.length]));
+$('bNew').addEventListener('click', newSeed);
+$('bSound').addEventListener('click', () => { Music.on ? stopMusic() : startMusic(); });
+$('bPanel').addEventListener('click', () => {
+  const p = $('panel'); p.hidden = !p.hidden; $('bPanel').setAttribute('aria-pressed', String(!p.hidden));
+});
+function soundLabel() {
+  $('bSound').textContent = Music.on ? 'Звук вкл.' : 'Звук выкл.';
+  $('bSound').classList.toggle('sound-on', Music.on);
+  P.music = Music.on; syncControl('music');
+}
+async function startMusic() {
+  if (!Music.available) { toast('Библиотека звука не загрузилась'); P.music = false; syncControl('music'); return; }
+  const ok = await Music.start(); soundLabel(); if (ok) toast('Музыка следует за светом');
+}
+function stopMusic() { Music.stop(); soundLabel(); }
+if (!Music.available) { $('musicSection').hidden = true; $('bSound').hidden = true; }
+
+/* snapshot through the downloads capability */
+let downloads = null;
+if (window.claude && typeof window.claude.use === 'function') {
+  window.claude.use('downloads').then(d => { downloads = d; $('bSnap').hidden = !d; }).catch(() => {});
+}
+let snapBusy = false;
+function snapshot() {
+  if (!downloads || snapBusy) return;
+  snapBusy = true;
+  const w = stageEl.clientWidth, h = stageEl.clientHeight;
+  const big = Math.min(2, 4096 / Math.max(w, h));
+  renderer.setPixelRatio(big); renderer.setSize(w, h, false);
+  composer.setPixelRatio(big); composer.setSize(w, h); bloom.setSize(w * big, h * big);
+  composer.render();
+  renderer.domElement.toBlob(blob => {
+    resize();
+    if (!blob) { snapBusy = false; toast('Снимок не получился'); return; }
+    const name = 'prism-rail-' + P.seed + '.png';
+    downloads.save({ filename:name, data:blob }).then(() => toast('Снимок сохранён'))
+      .catch(e => { if (e && e.code !== 'declined') toast('Снимок не сохранён'); })
+      .finally(() => { snapBusy = false; });
+  }, 'image/png');
+}
+$('bSnap').addEventListener('click', snapshot);
+
+/* toast */
+let toastTimer = 0;
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2400); }
+
+/* intro */
+function closeIntro() { $('intro').classList.add('gone'); setTimeout(() => { $('intro').hidden = true; }, 950); }
+$('startSound').addEventListener('click', () => { closeIntro(); startMusic(); });
+$('startMute').addEventListener('click', closeIntro);
+
+/* keys */
+window.addEventListener('keydown', e => {
+  const tag = (e.target && e.target.tagName) || '';
+  if (tag === 'INPUT' && e.target.type !== 'range' && e.target.type !== 'checkbox') return;
+  if (tag === 'SELECT') return;
+  if (tag === 'BUTTON' && (e.code === 'Space' || e.key === 'Enter')) return;
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  if (e.code === 'Space') { e.preventDefault(); setPaused(!paused); }
+  else if (k === 'c' || k === 'с') $('bCam').click();
+  else if (k === 'r' || k === 'к') newSeed();
+  else if (k === 'h' || k === 'р') document.body.classList.toggle('ui-hidden');
+  else if (k === 'm' || k === 'ь') $('bSound').click();
+  else if (k === 'p' || k === 'з') snapshot();
+  else if (k >= '1' && k <= '5') applyPreset(['reference','ice','sunset','minimal','chaos'][+k - 1]);
+  else if (k === 'escape' && !$('intro').hidden) closeIntro();
+});
+
+/* ================= loop ================= */
+let last = performance.now(), fpsAcc = 0, fpsN = 0, tickAcc = 0;
+function frame(now) {
+  requestAnimationFrame(frame);
+  const dt = clamp((now - last) / 1000, 0, 0.05); last = now;
+  time += dt;
+  const breath = updateCart(dt);
+  const ev = solveOptics(dt, breath);
+  for (const i of ev) Music.note(i, bMax[i]);
+  tickAcc += dt; if (tickAcc > 0.1) { tickAcc = 0; Music.tick(); }
+  updateCamera(dt);
+  beamUniforms.uTime.value = time;
+  finalPass.uniforms.uTime.value = time;
+  finalPass.uniforms.uGrain.value = P.grain;
+  bloom.strength = P.bloom;
+  composer.render();
+  fpsAcc += dt; fpsN++;
+  if (fpsAcc > 0.5) { $('fps').textContent = Math.round(fpsN / fpsAcc) + ' кадров/с'; fpsAcc = 0; fpsN = 0; }
+}
+
+/* ================= boot ================= */
+try {
+  const hash = decodeURIComponent((location.hash || '').slice(1));
+  if (hash && parseCode(hash)) P.preset = 'reference';
+} catch (e) { /* ignore */ }
+syncAll();
+resize();
+build();
+setCamera('cinema');
+soundLabel();
+requestAnimationFrame(t => { last = t; requestAnimationFrame(frame); });
+})();
+</script>
+</body>
+</html>
