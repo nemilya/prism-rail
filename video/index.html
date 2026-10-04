@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Prism Rail — видео</title>
+<meta name="description" content="Обучающие ролики Prism Rail: симулятор света и стекла, преломление, дисперсия, радуга.">
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="player.css">
+<script type="module" src="player.js"></script>
+</head>
+<body>
+<main class="player" id="player">
+  <div class="frame" id="frame">
+    <canvas class="stage" id="stage" width="1920" height="1080" aria-hidden="true"></canvas>
+    <button class="bigplay" id="bigplay" type="button" aria-label="Смотреть"><span></span></button>
+    <p class="loading" id="loading">Загружаем симулятор…</p>
+  </div>
+  <div class="ctrl" id="ctrl">
+    <button class="ctrl__play" id="play" type="button" aria-label="Смотреть"><span></span></button>
+    <span class="ctrl__time" id="time">0:00 / 0:00</span>
+    <div class="scrub" id="scrub" role="slider" tabindex="0" aria-label="Время" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0">
+      <div class="scrub__segs" id="segs"></div>
+      <div class="scrub__head" id="head"></div>
+    </div>
+    <button class="ctrl__cc" id="cc" type="button" aria-pressed="false" title="Субтитры (C)">CC</button>
+    <button class="ctrl__sound" id="sound" type="button" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path class="wave" d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12"/><path class="off" d="M16 9.5l5 5m0-5l-5 5"/></svg>
+    </button>
+    <button class="ctrl__fs" id="fs" type="button" aria-label="На весь экран">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path class="in" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/><path class="out" d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>
+    </button>
+  </div>
+  <ol class="chapters" id="chapters"></ol>
+  <p class="hint" id="hint">Пробел — пауза · ← → — 5 секунд · 1–9 — главы · M — звук · C — субтитры · F — весь экран</p>
+</main>
+<!-- симулятор в режиме съёмки: та же сцена, что в sim/; кадры рисует плеер -->
+<iframe class="sim" id="sim" title="Симулятор Prism Rail" tabindex="-1" aria-hidden="true"></iframe>
+</body>
+</html>

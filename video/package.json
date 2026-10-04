@@ -1,0 +1,11 @@
+{
+  "name": "prism-rail-video",
+  "private": true,
+  "description": "Обучающие ролики Prism Rail: кадры симулятора (sim/index.html?embed) + чертежи, озвучка, музыка. npm нужен только для рендера MP4 (Playwright) и локальных копий three.js и Tone.js.",
+  "type": "module",
+  "devDependencies": {
+    "playwright": "1.56.1",
+    "three": "0.128.0",
+    "tone": "14.8.49"
+  }
+}
