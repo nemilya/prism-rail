@@ -69,8 +69,14 @@ button,select,input{font:inherit;color:inherit}
 
 /* dock */
 .dock{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;gap:4px;padding:5px;border-radius:999px;background:var(--panel);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border:1px solid var(--line);box-shadow:0 10px 40px rgba(0,0,0,.35);transition:opacity .4s,transform .4s;max-width:calc(100% - 32px);overflow-x:auto}
-.dock a{padding:8px 14px;border-radius:999px;font-size:13px;font-weight:500;white-space:nowrap;color:var(--ink);text-decoration:none}
-.dock a:hover{background:var(--chip)}
+.dock .gear{display:grid;place-items:center;padding:6px 10px}
+.dock .gear svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;transition:transform .4s}
+.dock .gear[aria-pressed="true"] svg{transform:rotate(60deg)}
+
+/* site nav: разделы сайта отдельно от управления сценой */
+.site{position:fixed;right:20px;top:calc(20px + env(safe-area-inset-top,0px));display:flex;gap:4px;transition:opacity .4s}
+.site a{padding:6px 12px;border-radius:999px;font-size:13px;font-weight:500;color:var(--on-stage-muted);text-decoration:none;white-space:nowrap}
+.site a:hover{color:var(--on-stage);background:rgba(255,255,255,.08)}
 .dock button{border:0;background:transparent;padding:8px 14px;border-radius:999px;font-size:13px;font-weight:500;white-space:nowrap;cursor:pointer;color:var(--ink)}
 .dock button:hover{background:var(--chip)}
 .dock button[aria-pressed="true"]{background:var(--chip)}
@@ -79,7 +85,7 @@ button,select,input{font:inherit;color:inherit}
 .dock .sound-on::after{content:"";position:absolute;left:14px;right:14px;bottom:4px;height:2px;border-radius:2px;background:var(--spectrum)}
 
 /* panel */
-.panel{position:fixed;right:16px;top:calc(16px + env(safe-area-inset-top,0px));bottom:calc(80px + env(safe-area-inset-bottom,0px));width:304px;border-radius:var(--radius-l);background:var(--panel);backdrop-filter:blur(22px) saturate(150%);-webkit-backdrop-filter:blur(22px) saturate(150%);border:1px solid var(--line);box-shadow:0 20px 60px rgba(0,0,0,.4);overflow-y:auto;overscroll-behavior:contain;padding:6px 18px 18px;transition:opacity .3s,transform .3s}
+.panel{position:fixed;right:16px;top:calc(64px + env(safe-area-inset-top,0px));bottom:calc(80px + env(safe-area-inset-bottom,0px));width:304px;border-radius:var(--radius-l);background:var(--panel);backdrop-filter:blur(22px) saturate(150%);-webkit-backdrop-filter:blur(22px) saturate(150%);border:1px solid var(--line);box-shadow:0 20px 60px rgba(0,0,0,.4);overflow-y:auto;overscroll-behavior:contain;padding:6px 18px 18px;transition:opacity .3s,transform .3s}
 .panel[hidden]{display:block;opacity:0;transform:translateX(16px);pointer-events:none}
 .panel section{padding:14px 0 6px;border-bottom:1px solid var(--line)}
 .panel section:last-child{border-bottom:0}
@@ -135,8 +141,8 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
 .fatal{position:fixed;inset:0;display:grid;place-items:center;color:var(--on-stage);text-align:center;padding:24px;z-index:10;background:#000}
 .fatal p{max-width:46ch;color:var(--on-stage-muted)}
 
-body.ui-hidden .dock,body.ui-hidden .panel,body.ui-hidden .brand,body.ui-hidden .fps{opacity:0;pointer-events:none}
-body.embed .brand,body.embed .fps,body.embed .intro,body.embed .dock,body.embed .panel,body.embed .toast{display:none!important}
+body.ui-hidden .dock,body.ui-hidden .panel,body.ui-hidden .brand,body.ui-hidden .site,body.ui-hidden .fps{opacity:0;pointer-events:none}
+body.embed .brand,body.embed .site,body.embed .fps,body.embed .intro,body.embed .dock,body.embed .panel,body.embed .toast{display:none!important}
 @media (prefers-reduced-motion:reduce){.intro h2{animation:none}*{transition-duration:.01ms!important}}
 @media (max-width:720px){.panel{width:auto;left:16px;top:auto;height:52vh}}
 </style>
@@ -145,6 +151,11 @@ body.embed .brand,body.embed .fps,body.embed .intro,body.embed .dock,body.embed 
 <div id="stage" aria-label="3D-сцена: тележка с прожекторами среди дихроичных стёкол"></div>
 
 <div class="brand"><h1><a href="../about/" title="О проекте и обучающий ролик">Prism Rail</a></h1><p>свет, стекло и звук на игрушечной трассе</p></div>
+<nav class="site" aria-label="Разделы сайта">
+  <a href="../about/#video">Ролик</a>
+  <a href="../about/#physics">Физика света</a>
+  <a href="../about/">О проекте</a>
+</nav>
 <div class="fps" id="fps"></div>
 
 <div class="intro" id="intro">
@@ -167,13 +178,10 @@ body.embed .brand,body.embed .fps,body.embed .intro,body.embed .dock,body.embed 
   <button id="bSound" title="Музыка (M)">Звук выкл.</button>
   <button id="bSnap" title="Снимок PNG (P)" hidden>Снимок</button>
   <span class="sep"></span>
-  <a href="../about/#video" title="Обучающий ролик: откуда в темноте радуга">Ролик</a>
-  <a href="../about/" title="О проекте, физика и вдохновение">О проекте</a>
-  <span class="sep"></span>
-  <button id="bPanel" aria-pressed="true" title="Показать или скрыть настройки">Настройки</button>
+  <button id="bPanel" class="gear" aria-pressed="false" aria-controls="panel" title="Настройки сцены, света и звука" aria-label="Настройки"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
 </nav>
 
-<aside class="panel" id="panel" aria-label="Настройки">
+<aside class="panel" id="panel" aria-label="Настройки" hidden>
   <section>
     <h2>Сцена</h2>
     <div class="row"><div class="lab">Пресет</div>
