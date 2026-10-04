@@ -50,3 +50,14 @@ poster:  ## только обложки → out/<id>/poster-<lang>-<формат
 
 clean-out:  ## удалить out/ — все MP4 и кадры (пересобираются долго)
 	rm -rf out
+
+.PHONY: dist preview deploy
+dist:  ## сайт для выкладки → dist/ (симулятор, «О проекте», плеер; веб-ролик — из out/<id>/web/, make web)
+	node tools/dist.mjs
+
+preview:  ## собрать dist/ и открыть локально: http://127.0.0.1:8791/
+	node tools/dist.mjs --serve
+
+deploy: dist  ## выложить dist/ (DEPLOY=user@host:/путь/ — в local.mk), rsync --delete
+	@test -n "$(DEPLOY)" || { echo 'укажите DEPLOY=user@host:/путь/ (например, в local.mk)'; exit 1; }
+	rsync -avz --delete --exclude .DS_Store dist/ $(DEPLOY)

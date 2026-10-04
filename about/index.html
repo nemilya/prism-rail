@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Prism Rail — о проекте</title>
+<meta name="description" content="Prism Rail — 3D-симулятор световой инсталляции: тележка с двумя прожекторами едет среди дихроичных стёкол, свет рисует по тёмной комнате радугу, а музыка следует за светом. Обучающий ролик о преломлении и дисперсии.">
+<meta property="og:title" content="Prism Rail — свет, стекло и радуга в браузере">
+<meta property="og:description" content="Симулятор световой инсталляции и ролик «Откуда в темноте радуга».">
+<meta property="og:image" content="hero.jpg">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="landing.css">
+</head>
+<body>
+
+<header class="hero">
+  <img class="hero__bg" src="hero.jpg" alt="" width="1600" height="900">
+  <nav class="top" aria-label="Разделы">
+    <a class="top__brand" href="../">Prism Rail</a>
+    <a href="#video">Ролик</a>
+    <a href="#physics">Физика света</a>
+    <a href="#sim">Симулятор</a>
+    <a href="#inspiration">Вдохновение</a>
+    <a href="https://github.com/nemilya/prism-rail">GitHub</a>
+  </nav>
+  <div class="hero__card">
+    <p class="kicker">световая инсталляция в браузере</p>
+    <h1 class="spectral">Prism Rail</h1>
+    <p class="lead">Игрушечная тележка с двумя прожекторами едет по тёмной комнате среди трёхсот дихроичных стёкол.
+      Свет отражается и проходит насквозь, раскрашивает стены радугой, а музыка следует за светом.</p>
+    <div class="actions">
+      <a class="cta primary" href="../">Открыть симулятор</a>
+      <a class="cta" href="#video">Смотреть ролик · 3 мин</a>
+    </div>
+    <small>Симулятор — для компьютера: WebGL и звук, лучше в Chrome, Safari или Firefox.</small>
+  </div>
+</header>
+
+<main>
+
+<section class="section" id="video">
+  <div class="head">
+    <p class="kicker">обучающий ролик</p>
+    <h2>Откуда в темноте радуга</h2>
+    <p class="sub">Ведущий спрашивает, физик объясняет. Кадр из симулятора замирает и превращается в чертёж мелом:
+      преломление, закон Снеллиуса, дисперсия в призме, радуга в капле и цветные стёкла, которые меняют цвет с углом.</p>
+  </div>
+
+  <div class="film">
+    <div class="film__frame" id="film">
+      <video id="clip" controls playsinline preload="metadata" poster="../media/refraction-ru.jpg">
+        <source src="../media/refraction-ru.mp4" type="video/mp4">
+        <track kind="captions" srclang="ru" label="Русские субтитры" src="../video/films/refraction/voice/ru.vtt">
+      </video>
+      <!-- если MP4 ещё не выложен — тот же ролик в живом плеере: он рисуется прямо в браузере -->
+      <a class="film__live" id="live" href="../video/?film=refraction" hidden>
+        <img src="../media/refraction-ru.jpg" alt="">
+        <span class="film__play" aria-hidden="true"></span>
+        <span class="film__note">Смотреть в плеере · ролик рисуется прямо в браузере</span>
+      </a>
+    </div>
+    <ol class="chapters" id="chapters">
+      <li><a href="#video" data-t="0"><time>0:00</time>Тележка и стёкла</a></li>
+      <li><a href="#video" data-t="13.5"><time>0:13</time>Одно стекло</a></li>
+      <li><a href="#video" data-t="37"><time>0:37</time>Стоп-кадр</a></li>
+      <li><a href="#video" data-t="44.7"><time>0:44</time>Преломление</a></li>
+      <li><a href="#video" data-t="78"><time>1:18</time>Дисперсия</a></li>
+      <li><a href="#video" data-t="110"><time>1:50</time>Радуга</a></li>
+      <li><a href="#video" data-t="134.1"><time>2:14</time>Дихроичное стекло</a></li>
+      <li><a href="#video" data-t="179"><time>2:59</time>Обратно в комнату</a></li>
+    </ol>
+  </div>
+</section>
+
+<section class="section" id="physics">
+  <div class="head">
+    <p class="kicker">физика за кадром</p>
+    <h2>Четыре шага от белого луча до радуги</h2>
+  </div>
+  <div class="cards">
+    <article class="card">
+      <span class="card__n">01</span>
+      <h3>Преломление</h3>
+      <p>На границе стекла свет замедляется примерно в полтора раза и поэтому поворачивает. Чем больше показатель
+        преломления, тем сильнее луч прижимается к нормали.</p>
+      <p class="formula">n<sub>1</sub>·sin θ<sub>1</sub> = n<sub>2</sub>·sin θ<sub>2</sub></p>
+      <a class="card__link" href="#video" data-t="44.7">в ролике с 0:44</a>
+    </article>
+    <article class="card">
+      <span class="card__n">02</span>
+      <h3>Дисперсия</h3>
+      <p>Показатель преломления у стекла немного разный для разных цветов: синий поворачивает сильнее красного.
+        Белый свет — смесь всех цветов, и на границе смесь расходится веером, как у Ньютона с призмой.</p>
+      <p class="formula">n = n(λ)</p>
+      <a class="card__link" href="#video" data-t="78">в ролике с 1:18</a>
+    </article>
+    <article class="card">
+      <span class="card__n">03</span>
+      <h3>Радуга</h3>
+      <p>Капля — круглая призма: два преломления и одно отражение от задней стенки. Красный выходит под углом около 42°,
+        фиолетовый — около 40°, поэтому радуга — дуга, и красный всегда снаружи.</p>
+      <p class="formula">красный ≈ 42°, фиолетовый ≈ 40°</p>
+      <a class="card__link" href="#video" data-t="110">в ролике с 1:50</a>
+    </article>
+    <article class="card">
+      <span class="card__n">04</span>
+      <h3>Дихроичное стекло</h3>
+      <p>Покрытие из десятков слоёв тоньше длины волны отражает один цвет и пропускает остальные. Отражение и проход —
+        дополнительные цвета, а с ростом угла пик сдвигается к синему.</p>
+      <p class="formula">λ<sub>пик</sub> = λ<sub>0</sub>·√(1 − (sin θ / n)²)</p>
+      <a class="card__link" href="#video" data-t="134.1">в ролике с 2:14</a>
+    </article>
+  </div>
+</section>
+
+<section class="section" id="sim">
+  <div class="head">
+    <p class="kicker">интерактив</p>
+    <h2>Призма-поезд: симулятор</h2>
+    <p class="sub">Та же комната, что в ролике, только живая. Выберите форму трассы и зерно, и сцена соберётся заново:
+      каждый код сцены даёт одну и ту же раскладку стёкол.</p>
+  </div>
+
+  <div class="gallery">
+    <figure><img src="glass.jpg" alt="Луч прожектора упирается в жёлтое стекло, за ним — фиолетовое" loading="lazy" width="960" height="540"><figcaption>На борту: камера смотрит вдоль луча</figcaption></figure>
+    <figure><img src="room.jpg" alt="Вся комната сверху: трасса-клевер и россыпь цветных стёкол" loading="lazy" width="960" height="540"><figcaption>Общий план: трасса и роща стёкол</figcaption></figure>
+    <figure><img src="cart.jpg" alt="Тележка с фонарями рядом с розовым и жёлтым стёклами" loading="lazy" width="960" height="540"><figcaption>Проезд рядом с тележкой</figcaption></figure>
+  </div>
+
+  <div class="features">
+    <ul class="list">
+      <li><b>Свет.</b> Два боковых прожектора, лучи в дыму, отражённые и прошедшие блики на полу и стенах, вторичные отражения от соседних стёкол.</li>
+      <li><b>Музыка.</b> Каждое стекло в луче звучит своей нотой: синие выше, красные ниже. Темп задаёт скорость тележки, стук — стыки рельсов.</li>
+      <li><b>Камеры.</b> Кино, орбита, на борту и погоня. Пробел — пауза, C — камера, H — спрятать интерфейс, M — музыка.</li>
+      <li><b>Сцена.</b> Пять форм трассы, четыре палитры, плотность и размер стёкол. Кодом сцены можно поделиться, кадр — сохранить в PNG.</li>
+    </ul>
+    <div class="scenes">
+      <p class="scenes__title">Готовые сцены</p>
+      <a class="scene" href="../#clover.300.spectrum.40.10.lumen-482"><span class="dot dot--spectrum"></span>Клевер · весь спектр<code>clover.300.spectrum.40.10.lumen-482</code></a>
+      <a class="scene" href="../#wave.260.ice.50.11.aurora-17"><span class="dot dot--ice"></span>Волна · лёд<code>wave.260.ice.50.11.aurora-17</code></a>
+      <a class="scene" href="../#oval.220.warm.35.10.halo-905"><span class="dot dot--warm"></span>Овал · закат<code>oval.220.warm.35.10.halo-905</code></a>
+      <a class="scene" href="../#eight.320.spectrum.60.9.prism-64"><span class="dot dot--spectrum"></span>Восьмёрка · спектр<code>eight.320.spectrum.60.9.prism-64</code></a>
+      <a class="cta primary cta--wide" href="../">Открыть симулятор</a>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="inspiration">
+  <div class="head">
+    <p class="kicker">вдохновение</p>
+    <h2>DEVIATION</h2>
+  </div>
+  <div class="inspo">
+    <div class="inspo__text">
+      <p>Prism Rail вдохновлён инсталляцией <b>DEVIATION</b> студии Свена Зауэра (<a href="https://www.instagram.com/studiosvensauer/">@studiosvensauer</a>),
+        которую представила <a href="https://www.instagram.com/visualatelier8/">@visualatelier8</a>. Через комнату ковром тянутся осколки стекла,
+        собранные по всему миру. Под некоторыми углами обработанные осколки ловят свет и делят его стократно.</p>
+      <p>Битое стекло обычно выглядит тревожно: разбитые окна, следы беспорядков, острые края на границах. Работа опирается на тексты
+        историка Рутгера Брегмана и показывает другое:
+        в кризис люди сближаются, и доброты становится больше. Негатив громче, но история говорит, что сотрудничество побеждает.
+        Осколки разрушения превращаются в отблески надежды.</p>
+      <p><a class="cta" href="https://www.instagram.com/p/DOdgUZWDD6o/?img_index=1">Пост о DEVIATION в Instagram</a></p>
+    </div>
+  </div>
+  <p class="inspo__note">Prism Rail — самостоятельная браузерная симуляция по мотивам: другие стёкла, своя трасса и генеративная музыка.</p>
+</section>
+
+</main>
+
+<footer class="foot">
+  <p><span class="spectral">Prism Rail</span> · симулятор на Three.js и Tone.js, ролик собран из его же кадров. Вдохновлено <a href="#inspiration">DEVIATION</a>.</p>
+  <p><a href="https://github.com/nemilya/prism-rail">github.com/nemilya/prism-rail</a> · <a href="../video/?film=refraction">ролик в живом плеере</a></p>
+</footer>
+
+<script src="landing.js"></script>
+</body>
+</html>
