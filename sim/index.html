@@ -61,6 +61,9 @@ button,select,input{font:inherit;color:inherit}
 /* brand */
 .brand{position:fixed;left:24px;top:calc(20px + env(safe-area-inset-top,0px));color:var(--on-stage);pointer-events:none;transition:opacity .4s}
 .brand h1{margin:0;font-weight:600;font-size:19px;letter-spacing:-.01em}
+.brand a{position:relative;color:inherit;text-decoration:none;pointer-events:auto}
+.brand a::before{content:"←";position:absolute;right:100%;padding-right:5px;opacity:0;transition:opacity .2s}
+.brand a:hover::before,.brand a:focus-visible::before{opacity:.7}
 .brand p{margin:2px 0 0;font-size:12.5px;color:var(--on-stage-muted);font-weight:400}
 .fps{position:fixed;left:24px;bottom:calc(22px + env(safe-area-inset-bottom,0px));color:var(--on-stage-muted);font-size:12px;font-variant-numeric:tabular-nums;pointer-events:none;transition:opacity .4s}
 
@@ -121,6 +124,8 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
 .cta.primary{background:rgba(10,10,14,.6)}
 .cta.primary::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;background:var(--spectrum);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
 .cta:hover{background:rgba(255,255,255,.12)}
+.intro .back{display:inline-block;margin-top:14px;font-size:13px;color:rgba(243,245,249,.62);text-decoration:none;border-bottom:1px solid rgba(243,245,249,.25)}
+.intro .back:hover{color:#f3f5f9}
 .intro small{display:block;margin-top:26px;font-size:12.5px;color:rgba(243,245,249,.45)}
 
 .toast{position:fixed;left:50%;bottom:calc(78px + env(safe-area-inset-bottom,0px));transform:translate(-50%,8px);background:var(--panel);color:var(--ink);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--line);padding:8px 14px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:6}
@@ -137,7 +142,7 @@ body.embed .brand,body.embed .fps,body.embed .intro,body.embed .dock,body.embed 
 <body>
 <div id="stage" aria-label="3D-сцена: тележка с прожекторами среди дихроичных стёкол"></div>
 
-<div class="brand"><h1>Prism Rail</h1><p>свет, стекло и звук на игрушечной трассе</p></div>
+<div class="brand"><h1><a href="../" title="О проекте и обучающий ролик">Prism Rail</a></h1><p>свет, стекло и звук на игрушечной трассе</p></div>
 <div class="fps" id="fps"></div>
 
 <div class="intro" id="intro">
@@ -149,6 +154,7 @@ body.embed .brand,body.embed .fps,body.embed .intro,body.embed .dock,body.embed 
       <button class="cta" id="startMute">Без звука</button>
     </div>
     <small>Space — пауза, C — камера, H — скрыть интерфейс, M — музыка</small>
+    <a class="back" href="../">О проекте и обучающий ролик</a>
   </div>
 </div>
 
