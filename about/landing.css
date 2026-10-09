@@ -37,6 +37,15 @@ img { max-width: 100%; }
 .top a { text-decoration: none; color: rgba(243, 245, 249, .72); }
 .top a:hover { color: var(--ink); }
 .top__brand { margin-right: auto; font-weight: 600; font-size: 17px; color: var(--ink) !important; letter-spacing: -.01em; }
+.top .langs { display: flex; gap: 2px; padding-left: 12px; border-left: 1px solid rgba(255, 255, 255, .16); }
+.top .langs a { padding: 2px 6px; border-radius: 6px; font-size: 12.5px; letter-spacing: .04em; }
+.top .langs a[aria-current] { color: var(--ink); background: var(--chip); }
+.suggest { position: fixed; z-index: 20; left: 50%; top: 14px; transform: translateX(-50%); display: flex; gap: 12px; align-items: center;
+  max-width: calc(100% - 32px); padding: 8px 8px 8px 16px; border-radius: 999px; background: rgba(13, 14, 19, .92);
+  border: 1px solid var(--line); box-shadow: 0 10px 40px rgba(0, 0, 0, .45); font-size: 14px; backdrop-filter: blur(14px); }
+.suggest__go { padding: 6px 14px; border-radius: 999px; background: var(--chip); text-decoration: none; font-weight: 500; white-space: nowrap; }
+.suggest__go:hover { background: rgba(255, 255, 255, .13); }
+.suggest__close { border: 0; background: transparent; color: var(--muted); font-size: 20px; line-height: 1; padding: 4px 8px; cursor: pointer; }
 .hero__card { max-width: 640px; text-align: center; }
 .hero h1 { margin: 0; font-size: clamp(56px, 11vw, 128px); font-weight: 700; letter-spacing: -.045em; line-height: .95; }
 .lead { margin: 22px auto 30px; max-width: 46ch; font-size: clamp(16px, 2vw, 18px); line-height: 1.6; color: rgba(243, 245, 249, .74); font-weight: 300; }
@@ -73,6 +82,7 @@ img { max-width: 100%; }
 .chapters a:hover { background: var(--chip); color: var(--ink); }
 .chapters a.on { background: var(--chip); color: var(--ink); }
 .chapters a.on time { color: var(--accent); }
+.disclaimer { margin: 16px 0 0; max-width: 80ch; font-size: 13.5px; color: var(--muted); }
 .chapters time { flex: none; width: 3.2em; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; }
 
 /* physics */
@@ -123,7 +133,7 @@ img { max-width: 100%; }
 }
 @media (max-width: 640px) {
   .top { gap: 14px; font-size: 13px; }
-  .top a:not(.top__brand):not([href="#video"]):not([href="#sim"]) { display: none; }
+  .top > a:not(.top__brand):not([href="#video"]):not([href="#sim"]) { display: none; }
   .cards, .gallery, .chapters { grid-template-columns: 1fr; }
   .section { padding-top: 64px; }
 }

@@ -1,5 +1,7 @@
 /* Плеер ролика: играет, перематывает, главы, озвучка, субтитры.
- *   index.html?film=refraction&lang=ru&t=40&subs=1
+ *   index.html?film=refraction&lang=en&t=40&subs=1
+ * Язык: ?lang → выбор кнопкой EN/RU (prism-video-lang) → язык браузера → первый язык ролика (en).
+ * Подписи плеера — UI ниже, тексты ролика — films/<id>/i18n.js.
  *   &format=portrait — вертикальный 9:16, &size=720 — короткая сторона кадра (по умолчанию 1080)
  * 3D-кадр рисует ../sim/index.html?embed в скрытом iframe (window.prism), поверх — графика сцены.
  * Озвучка (films/<id>/voice/<lang>.json + .m4a) необязательна: без неё ролик идёт без звука
@@ -21,8 +23,24 @@ const store = {
 const id = FILMS.some((f) => f.id === params.get('film')) ? params.get('film') : FILMS[0].id;
 const base = `films/${id}`;
 const { default: FILM } = await import(`./${base}/film.js`);
-let lang = params.get('lang') || store.get('prism-video-lang') || 'ru';
-if (!FILM.i18n[lang]) lang = FILM.i18n.ru ? 'ru' : Object.keys(FILM.i18n)[0];
+/** подписи плеера */
+const UI = {
+  en: {
+    play: 'Play', pause: 'Pause', again: 'Replay', loading: 'Loading the simulator…', time: 'Time', subs: 'Subtitles (C)',
+    fs: 'Full screen', fsOut: 'Exit full screen', soundOn: 'Turn sound on', soundOff: 'Turn sound off', lang: 'Language',
+    hint: 'Space — pause · ← → — 5 seconds · 1–9 — chapters · M — sound · C — subtitles · F — full screen',
+  },
+  ru: {
+    play: 'Смотреть', pause: 'Пауза', again: 'Сначала', loading: 'Загружаем симулятор…', time: 'Время', subs: 'Субтитры (C)',
+    fs: 'На весь экран', fsOut: 'Выйти из полного экрана', soundOn: 'Включить звук', soundOff: 'Выключить звук', lang: 'Язык',
+    hint: 'Пробел — пауза · ← → — 5 секунд · 1–9 — главы · M — звук · C — субтитры · F — весь экран',
+  },
+};
+const LANGS = Object.keys(FILM.i18n);
+let lang = [params.get('lang'), store.get('prism-video-lang'), (navigator.language || '').slice(0, 2).toLowerCase()]
+  .find((l) => l && FILM.i18n[l]) ?? LANGS[0];
+const ui = () => UI[lang] ?? UI.en;
+if (!RENDER) $('loading').textContent = ui().loading;
 let subs = params.has('subs') ? params.get('subs') !== '0' : store.get('prism-video-subs') === '1';
 const FORMAT = params.get('format') === 'portrait' ? 'portrait' : 'landscape';
 const SIZE = Math.min(2160, Math.max(240, Number(params.get('size')) || 1080));
@@ -74,6 +92,15 @@ async function setLang(l) {
   document.documentElement.lang = l;
   const T = FILM.i18n[l];
   document.title = T.title;
+  if (!RENDER) {
+    const U = ui();
+    $('hint').textContent = U.hint;
+    $('note').textContent = (T.disclaimer || '').replace(/\n/g, ' ');
+    $('scrub').setAttribute('aria-label', U.time);
+    $('cc').title = U.subs;
+    $('langs').setAttribute('aria-label', U.lang);
+    for (const b of $('langs').children) b.setAttribute('aria-pressed', String(b.dataset.lang === l));
+  }
   voice = await loadVoice(l);
   film = mount(stage, FILM, l, sim, overlay, { voice, subs, w: FW, h: FH });
   if (RENDER) return;
@@ -81,7 +108,6 @@ async function setLang(l) {
   audio = voice ? new Audio(`${base}/voice/${l}.m4a`) : null;
   if (audio) { audio.preload = 'auto'; audio.muted = muted; }
   $('sound').hidden = !audio;
-  store.put('prism-video-lang', l);
   $('chapters').replaceChildren(...film.chapters.map((c, i) => {
     const b = document.createElement('button');
     b.type = 'button';
@@ -129,7 +155,7 @@ function go(nt, fromAudio = false) {
 
 function uiPlay() {
   document.body.classList.toggle('is-playing', playing);
-  for (const b of [$('play'), $('bigplay')]) b.setAttribute('aria-label', playing ? 'Пауза' : (t >= film.duration - 0.05 ? 'Сначала' : 'Смотреть'));
+  for (const b of [$('play'), $('bigplay')]) b.setAttribute('aria-label', playing ? ui().pause : (t >= film.duration - 0.05 ? ui().again : ui().play));
 }
 function play(on) {
   playing = on;
@@ -157,7 +183,8 @@ function tick(now) {
 function fsUi() {
   const on = !!document.fullscreenElement;
   $('fs').classList.toggle('is-on', on);
-  $('fs').title = on ? 'Выйти из полного экрана' : 'На весь экран';
+  $('fs').title = on ? ui().fsOut : ui().fs;
+  $('fs').setAttribute('aria-label', $('fs').title);
 }
 async function toggleFs() {
   try {
@@ -167,7 +194,7 @@ async function toggleFs() {
 }
 function soundUi() {
   $('sound').classList.toggle('is-muted', muted);
-  $('sound').title = muted ? 'Включить звук' : 'Выключить звук';
+  $('sound').title = muted ? ui().soundOn : ui().soundOff;
 }
 function toggleSound() {
   muted = !muted;
@@ -199,6 +226,25 @@ if (RENDER) {
   $('cc').addEventListener('click', toggleSubs);
   $('fs').hidden = !document.fullscreenEnabled;
   $('fs').addEventListener('click', toggleFs);
+  // EN / RU — если у ролика несколько языков; выбор запоминается
+  if (LANGS.length > 1) {
+    $('langs').hidden = false;
+    $('langs').replaceChildren(...LANGS.map((l) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.dataset.lang = l;
+      b.lang = l;
+      b.textContent = l.toUpperCase();
+      b.setAttribute('aria-pressed', String(l === lang));
+      return b;
+    }));
+    $('langs').addEventListener('click', (e) => {
+      const l = e.target.closest('button')?.dataset.lang;
+      if (!l || l === lang) return;
+      store.put('prism-video-lang', l);
+      setLang(l);
+    });
+  }
   document.addEventListener('fullscreenchange', fsUi);
   const scrub = $('scrub');
   const toT = (e) => { const r = scrub.getBoundingClientRect(); return ((e.clientX - r.left) / r.width) * film.duration; };

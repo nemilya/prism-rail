@@ -216,7 +216,7 @@ export function hand(ctx, env, text, x, y, p, { size = 52, color = C.chalk, alig
 
 /* Формулы: маленький TeX. a_1 a_{12} — индекс, a^2 — степень, \sqrt{…} — корень (рисуется линией),
  * (...) и прочее — как есть. Одиночные латинские и греческие буквы — курсивом, слова (sin, нм) — прямо. */
-const WORD = /^(sin|cos|tg|нм|°)$/;
+const WORD = /^(sin|cos|tg|нм|nm|°)$/;
 function parse(src) {
   const out = [];
   let i = 0;
@@ -333,9 +333,9 @@ export function spectrumBar(ctx, env, x, y, w, h, p, mark = null, { from = 400, 
     ctx.font = `500 ${22 * u}px ${UI}`;
     ctx.fillStyle = C.dim;
     ctx.textAlign = 'left';
-    ctx.fillText(`${from} нм`, P.x, P.y + h * u + 30 * u);
+    ctx.fillText(`${from} ${env.T?.nm ?? 'нм'}`, P.x, P.y + h * u + 30 * u);
     ctx.textAlign = 'right';
-    ctx.fillText(`${to} нм`, P.x + w * u, P.y + h * u + 30 * u);
+    ctx.fillText(`${to} ${env.T?.nm ?? 'нм'}`, P.x + w * u, P.y + h * u + 30 * u);
   }
   if (mark !== null && p > 0.6) {
     const mx = P.x + ((mark - from) / (to - from)) * w * u;
@@ -377,6 +377,23 @@ export function title(ctx, env, { kicker, title: tt, sub }, p) {
     ctx.fillStyle = g;
     ctx.fillText(kicker.toUpperCase(), x, y - 206 * u);
   }
+  ctx.restore();
+}
+
+/** Мелкая служебная плашка (например, «тестовый ролик»): строки через \n, по умолчанию — слева вверху */
+export function note(ctx, env, text, p, { x = 110, y = 96, size = 24, align = 'left' } = {}) {
+  if (p <= 0 || !text) return;
+  const u = env.u;
+  const P = px(env, x, y);
+  ctx.save();
+  ctx.globalAlpha = E.out(p) * 0.78;
+  ctx.font = `400 ${size * u}px ${UI}`;
+  ctx.textAlign = align;
+  ctx.textBaseline = 'alphabetic';
+  ctx.shadowColor = 'rgba(0, 0, 0, .8)';
+  ctx.shadowBlur = 12 * u;
+  ctx.fillStyle = '#e8ecf8';
+  String(text).split('\n').forEach((l, i) => ctx.fillText(l, P.x, P.y + i * size * 1.35 * u));
   ctx.restore();
 }
 

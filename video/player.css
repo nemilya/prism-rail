@@ -64,11 +64,16 @@ button { font: inherit; color: inherit; }
 .chapters button span { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 12px; }
 .chapters button.is-on { border-color: var(--accent); background: var(--accent-soft); }
 .hint { margin: 0; color: var(--muted); font-size: 12px; text-align: center; }
+.hint.note { max-width: 70ch; opacity: .8; }
+.ctrl__langs { display: flex; gap: 2px; }
+.ctrl__langs[hidden] { display: none; }
+.ctrl__langs button { border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 12px; font-weight: 700; letter-spacing: .04em; padding: 6px 7px; border-radius: 8px; cursor: pointer; }
+.ctrl__langs button[aria-pressed="true"] { color: var(--accent); background: var(--accent-soft); }
 
 .sim { position: fixed; left: -4000px; top: 0; width: 640px; height: 360px; border: 0; visibility: hidden; }
 
 /* ?render — только кадр 1920×1080 для scripts/video-render.mjs */
 .render .player { padding: 0; min-height: 0; }
 .render .frame { width: var(--fw, 1920px); height: var(--fh, 1080px); min-width: 0; max-width: none; border-radius: 0; box-shadow: none; }
-.render .ctrl, .render .chapters, .render .hint, .render .bigplay, .render .loading { display: none; }
+.render .ctrl, .render .chapters, .render .hint, .render .note, .render .bigplay, .render .loading { display: none; }
 @media (max-width: 640px) { .ctrl__time { min-width: 0; } }

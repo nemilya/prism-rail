@@ -1,4 +1,4 @@
-# Prism Rail: симулятор (sim/), ролики (video/), будущий лендинг — в корне. Все команды — отсюда.
+# Prism Rail: симулятор (sim/), ролики (video/), сайт по языкам (site/, tools/). Все команды — отсюда.
 # Нужны Node 22 и ffmpeg; Chromium ставит Playwright (make install). Подробно — video/README.md.
 -include local.mk
 export OPENROUTER_API_KEY OPENROUTER_PROXY
@@ -16,16 +16,17 @@ help:  ## список целей
 	@echo 'Какой ролик — FILM=<id> (обязателен для voice, sound, video, web, stills, subs, poster):'
 	@node -e "import('./video/films/index.js').then(m=>m.default.forEach(f=>console.log('  FILM='+f.id+'\t'+f.title)))"
 	@echo
-	@echo 'Пример: make stills FILM=refraction T=5,40,90 && make voice FILM=refraction && make video FILM=refraction \&\& make web FILM=refraction'
+	@echo 'Языки ролика — LANGS="en ru" (по умолчанию все). Пример: make stills FILM=refraction LANGS=en T=5,40,90'
+	@echo '  make voice FILM=refraction LANGS=en && make video FILM=refraction LANGS=en && make web FILM=refraction LANGS=en && make dist'
 
 install:  ## Playwright, Chromium и локальные копии three.js и Tone.js (в video/node_modules)
 	cd video && npm install --no-audit --no-fund && npx playwright install chromium
 
-play:  ## симулятор и плеер роликов локально: http://127.0.0.1:8790/sim/ и /video/
+play:  ## сайт и плеер роликов локально: http://127.0.0.1:8790/ (en), /ru/, /about/, /video/
 	node $(S)/serve.mjs 8790
 
-test:  ## тексты, сцены, звуки, детерминизм, API симулятора
-	node --test 'video/tests/*.test.mjs'
+test:  ## тексты, сцены, звуки, детерминизм, API симулятора, страницы сайта и перевод
+	node --test 'video/tests/*.test.mjs' 'site/tests/*.test.mjs'
 
 voice:  ## озвучка диалога + музыка и звуки → video/films/<id>/voice/<lang>.m4a (FILM=<id>; нужен OPENROUTER_API_KEY)
 	@node $(S)/video-voice.mjs $(FILM) $(LANGS)
@@ -52,7 +53,7 @@ clean-out:  ## удалить out/ — все MP4 и кадры (пересоб�
 	rm -rf out
 
 .PHONY: dist preview deploy
-dist:  ## сайт для выкладки → dist/ (симулятор, «О проекте», плеер; веб-ролик — из out/<id>/web/, make web)
+dist:  ## сайт для выкладки → dist/ (en в корне, ru в ru/: симулятор, «О проекте»; плеер; веб-ролики — из out/<id>/web/, make web)
 	node tools/dist.mjs
 
 preview:  ## собрать dist/ и открыть локально: http://127.0.0.1:8791/
