@@ -75,6 +75,42 @@ make deploy                      # build and upload with rsync to DEPLOY
 
 `out/` and `dist/` are build output and are not in git.
 
+## Releasing the video
+
+Full release of the video in one language (here `en`), then the site:
+
+```bash
+git pull
+make voice FILM=refraction LANGS=en    # voice-over (OPENROUTER_API_KEY; paid) → video/films/refraction/voice/en.{json,m4a,vtt}
+#   listen to voice/en.m4a; a bad scene: node video/scripts/video-voice.mjs refraction en --redo <scene>
+#   commit video/films/refraction/voice/en.{json,m4a,vtt}
+make video FILM=refraction LANGS=en    # MP4 → out/refraction/ (~1 h without a GPU)
+make web FILM=refraction LANGS=en      # light version → out/refraction/web/refraction-en.{mp4,jpg,vtt}
+make dist                              # site → dist/; make preview — check, make deploy — upload
+```
+
+- **Always pass `LANGS` to `make voice`.** The cache of voiced lines (`voice/clips/`) is not in git, so without
+  `LANGS` every language is synthesized again — and paid for again.
+- **Without a voice-over** the video is silent and the timeline (and the chapters on “About”) uses an estimate
+  of line lengths; after `make voice` everything is recalculated.
+- **`make web` is required before `make dist`:** the site takes the videos only from
+  `out/refraction/web/refraction-<lang>.{mp4,jpg}`; without them “About” in that language shows the live player
+  (`make dist` warns about it).
+- `make video` / `make web` without `LANGS` do all languages of the video.
+
+What to rerun after a change:
+
+| what changed | what to run |
+|---|---|
+| dialogue lines (`voice` in `video/films/<id>/i18n.js`) | `make voice` for **that** language → `make video` → `make web` → `make dist` (the test fails until the voice-over matches the text) |
+| on-screen text, drawings, scenes (`i18n.js` without `voice`, `film.js`, `video/lib/`) | `make video` → `make web` → `make dist` for all affected languages, no voice-over needed |
+| voice or delivery (`video/voice.config.json`) | `make voice` for that language → `make video` → `make web` → `make dist` |
+| site texts (`site/`), simulator (`sim/`) | `make test` → `make dist` |
+| a new language | checklist in [`docs/i18n.md`](docs/i18n.md), then the full release above with `LANGS=<code>` |
+
+Before any of it: `make test`; for changes in the video also `make stills FILM=refraction LANGS=<code> T=10,60,120` —
+check long captions on the drawings.
+
 ## Deploying
 
 `make dist` puts everything the browser needs into `dist/`: the simulator and “About” in English at the root and
