@@ -8,7 +8,7 @@
  * 3D — координаты симулятора: 1 = 1 м, y вверх, центр комнаты — (0, 0, 0). */
 import { memo } from '../../lib/engine.js';
 import {
-  C, E, angle, board, chalk, clamp, deg, fade, formula, hand, lerp, morph, plate, px, ray, rgb, scrim, seg, shown,
+  C, E, angle, board, chalk, clamp, deg, fade, formula, hand, lerp, morph, note, plate, px, ray, rgb, scrim, seg, shown,
   spectrumBar, title, wl, wlCss,
 } from '../../lib/overlay.js';
 import { beside, blend, overview } from '../../lib/rigs.js';
@@ -23,6 +23,8 @@ const S_HOOK = 2.2; // откуда тележка стартует в перв�
 const dist3 = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 const norm3 = (v) => { const l = Math.hypot(...v) || 1; return v.map((x) => x / l); };
 const cam = (pos, target, fov = 50) => ({ pos, target, fov });
+/** «λ_пик» на языке ролика — левая часть формулы из финальной карточки */
+const peak = (env) => env.T.end.lines[2].split(' = ')[0];
 
 /** Одно стекло для сцен 2–3: крупное, ярко в луче близко к тележке, отражённый блик рядом на полу,
  * и чуть дальше по пути оно всё ещё в луче, но под другим углом (цвет плывёт).
@@ -217,6 +219,7 @@ const SCENES = [
       const p = shown(lt, env.cue(0).t1 + 0.2, env.dur - 0.2, 0.8);
       scrim(ctx, env, p, 0.5);
       title(ctx, env, env.T.hook, p);
+      note(ctx, env, env.T.disclaimer, shown(lt, 1.2, env.dur - 0.4, 0.8));
       fade(ctx, env, '#000', 1 - seg(lt, 0, 1.6));
     },
     sfx: (c) => [[0.2, 'swell', 3], [c.cue(0).t1 + 0.2, 'chime']],
@@ -356,7 +359,7 @@ const SCENES = [
       // формула и числа справа
       const pf = seg(lt, c(2).t0 + 0.2, c(2).t0 + 3.2);
       formula(ctx, env, 'n_1 · sin θ_1 = n_2 · sin θ_2', 1160, 380, { size: 60 }, pf);
-      formula(ctx, env, `n_1 = 1,00   n_2 = ${n2.toFixed(2).replace('.', ',')}`, 1170, 470, { size: 44, color: C.dim }, shown(lt, c(2).t0 + 2.6, Infinity, 0.6));
+      formula(ctx, env, `n_1 = 1${env.T.dec}00   n_2 = ${n2.toFixed(2).replace('.', env.T.dec)}`, 1170, 470, { size: 44, color: C.dim }, shown(lt, c(2).t0 + 2.6, Infinity, 0.6));
       const pn = shown(lt, c(2).t1 - 1.2, Infinity, 0.6);
       const f0 = (x) => `${Math.round((x * 180) / Math.PI)}°`;
       formula(ctx, env, `θ_1 = ${f0(S.t1)}   θ_2 = ${f0(S.t2)}`, 1170, 550, { size: 44, color: '#bcd0ff' }, pn);
@@ -583,13 +586,13 @@ const SCENES = [
       }
       // формула, шкала спектра, живые числа
       const pf = seg(lt, c(4).t1 - 2.2, c(4).t1 + 0.6);
-      formula(ctx, env, 'λ_{пик} = λ_0 · \\sqrt{1 − (sin θ / n)^2}', 1200, 300, { size: 52 }, pf);
+      formula(ctx, env, env.T.end.lines[2], 1200, 300, { size: 52 }, pf);
       const pb = shown(lt, c(4).t0 + 0.6, Infinity, 0.6);
       spectrumBar(ctx, env, 1250, 420, 560, 26, pb, lp);
       const f0 = (x) => Math.round(x);
       plate(ctx, env, 1250, 510, 560, 150, shown(lt, c(4).t0 + 1.2), () => {
         formula(ctx, env, `θ = ${f0((th * 180) / Math.PI)}°`, 1290, 580, { size: 50, color: '#fff' });
-        formula(ctx, env, `λ_{пик} = ${f0(lp)} нм`, 1290, 638, { size: 44, color: rgb(rc) });
+        formula(ctx, env, `${peak(env)} = ${f0(lp)} ${env.T.nm}`, 1290, 638, { size: 44, color: rgb(rc) });
         const sw0 = px(env, 1700, 540);
         ctx.fillStyle = rgb(rc);
         ctx.shadowColor = rgb(rc);
@@ -632,7 +635,7 @@ const SCENES = [
       }
       plate(ctx, env, 90, 780, 540, 170, p, () => {
         formula(ctx, env, `θ = ${Math.round(h.theta)}°`, 130, 852, { size: 50, color: '#fff' });
-        formula(ctx, env, `λ_{пик} = ${Math.round(h.lpeak)} нм`, 130, 912, { size: 44, color: rgb(rc.map((x) => 0.4 + 0.6 * x)) });
+        formula(ctx, env, `${peak(env)} = ${Math.round(h.lpeak)} ${env.T.nm}`, 130, 912, { size: 44, color: rgb(rc.map((x) => 0.4 + 0.6 * x)) });
         const q = px(env, 560, 865);
         ctx.fillStyle = rgb(rc);
         ctx.shadowColor = rgb(rc);
@@ -656,6 +659,7 @@ const SCENES = [
       T.lines.forEach((l, i) => formula(ctx, env, l, 960, 470 + i * 100, { size: 54, align: 'center', color: i === 2 ? C.warm : C.chalk }, seg(lt, env.cue(0).t1 + 0.8 + i * 0.7, env.cue(0).t1 + 2.2 + i * 0.7)));
       hand(ctx, env, T.cta, 960, 870, shown(lt, env.cue(0).t1 + 3.2), { size: 54, align: 'center', color: '#bcd0ff' });
       hand(ctx, env, T.small, 960, 940, shown(lt, env.cue(0).t1 + 3.8), { size: 36, align: 'center', color: C.dim });
+      note(ctx, env, env.T.disclaimer, shown(lt, env.cue(0).t1 + 1.0), { x: 960, y: 1000, align: 'center' });
       fade(ctx, env, '#000', seg(lt, env.dur - 1.0, env.dur));
     },
     tail: 5.5,

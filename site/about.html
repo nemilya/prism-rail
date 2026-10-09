@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="{{lang}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{{meta.title}}</title>
+<meta name="description" content="{{meta.description}}">
+<meta property="og:title" content="{{meta.ogTitle}}">
+<meta property="og:description" content="{{meta.ogDescription}}">
+<meta property="og:image" content="{{assets}}hero.jpg">
+<meta property="og:locale" content="{{ogLocale}}">
+{{head}}
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{assets}}landing.css">
+</head>
+<body>
+
+<header class="hero">
+  <img class="hero__bg" src="{{assets}}hero.jpg" alt="" width="1600" height="900">
+  <nav class="top" aria-label="{{nav.sections}}">
+    <a class="top__brand" href="../">Prism Rail</a>
+    <a href="#video">{{nav.video}}</a>
+    <a href="#physics">{{nav.physics}}</a>
+    <a href="#sim">{{nav.sim}}</a>
+    <a href="#inspiration">{{nav.inspiration}}</a>
+    <a href="{{github}}">GitHub</a>
+    <span class="langs" role="group" aria-label="{{nav.language}}">{{langSwitch}}</span>
+  </nav>
+  <div class="hero__card">
+    <p class="kicker">{{hero.kicker}}</p>
+    <h1 class="spectral">Prism Rail</h1>
+    <p class="lead">{{hero.lead}}</p>
+    <div class="actions">
+      <a class="cta primary" href="../">{{hero.open}}</a>
+      <a class="cta" href="#video">{{hero.watch}} · {{filmMinutes}}</a>
+    </div>
+    <small>{{hero.desktop}}</small>
+  </div>
+</header>
+
+<main>
+
+<section class="section" id="video">
+  <div class="head">
+    <p class="kicker">{{video.kicker}}</p>
+    <h2>{{video.title}}</h2>
+    <p class="sub">{{video.sub}}</p>
+  </div>
+
+  <div class="film">
+    <div class="film__frame" id="film">
+      <video id="clip" controls playsinline preload="metadata" poster="{{media}}.jpg">
+        <source src="{{media}}.mp4" type="video/mp4">
+        {{track}}
+      </video>
+      <!-- если MP4 ещё не выложен — тот же ролик в живом плеере: он рисуется прямо в браузере -->
+      <a class="film__live" id="live" href="{{livePlayer}}" hidden>
+        <img src="{{media}}.jpg" alt="">
+        <span class="film__play" aria-hidden="true"></span>
+        <span class="film__note">{{video.live}}</span>
+      </a>
+    </div>
+    <ol class="chapters" id="chapters">
+      {{chapterItems}}
+    </ol>
+  </div>
+  <p class="disclaimer">{{video.disclaimer}}</p>
+</section>
+
+<section class="section" id="physics">
+  <div class="head">
+    <p class="kicker">{{physics.kicker}}</p>
+    <h2>{{physics.title}}</h2>
+  </div>
+  <div class="cards">
+    <article class="card">
+      <span class="card__n">01</span>
+      <h3>{{physics.refraction}}</h3>
+      <p>{{physics.refractionText}}</p>
+      <p class="formula">n<sub>1</sub>·sin θ<sub>1</sub> = n<sub>2</sub>·sin θ<sub>2</sub></p>
+      <a class="card__link" href="#video" data-t="{{t.snell}}">{{physics.from}} {{time.snell}}</a>
+    </article>
+    <article class="card">
+      <span class="card__n">02</span>
+      <h3>{{physics.dispersion}}</h3>
+      <p>{{physics.dispersionText}}</p>
+      <p class="formula">n = n(λ)</p>
+      <a class="card__link" href="#video" data-t="{{t.dispersion}}">{{physics.from}} {{time.dispersion}}</a>
+    </article>
+    <article class="card">
+      <span class="card__n">03</span>
+      <h3>{{physics.rainbow}}</h3>
+      <p>{{physics.rainbowText}}</p>
+      <p class="formula">{{physics.rainbowFormula}}</p>
+      <a class="card__link" href="#video" data-t="{{t.rainbow}}">{{physics.from}} {{time.rainbow}}</a>
+    </article>
+    <article class="card">
+      <span class="card__n">04</span>
+      <h3>{{physics.dichroic}}</h3>
+      <p>{{physics.dichroicText}}</p>
+      <p class="formula">λ<sub>{{physics.peak}}</sub> = λ<sub>0</sub>·√(1 − (sin θ / n)²)</p>
+      <a class="card__link" href="#video" data-t="{{t.dichroic}}">{{physics.from}} {{time.dichroic}}</a>
+    </article>
+  </div>
+</section>
+
+<section class="section" id="sim">
+  <div class="head">
+    <p class="kicker">{{sim.kicker}}</p>
+    <h2>{{sim.title}}</h2>
+    <p class="sub">{{sim.sub}}</p>
+  </div>
+
+  <div class="gallery">
+    <figure><img src="{{assets}}glass.jpg" alt="{{sim.glassAlt}}" loading="lazy" width="960" height="540"><figcaption>{{sim.glassCaption}}</figcaption></figure>
+    <figure><img src="{{assets}}room.jpg" alt="{{sim.roomAlt}}" loading="lazy" width="960" height="540"><figcaption>{{sim.roomCaption}}</figcaption></figure>
+    <figure><img src="{{assets}}cart.jpg" alt="{{sim.cartAlt}}" loading="lazy" width="960" height="540"><figcaption>{{sim.cartCaption}}</figcaption></figure>
+  </div>
+
+  <div class="features">
+    <ul class="list">
+      <li><b>{{sim.light}}</b> {{sim.lightText}}</li>
+      <li><b>{{sim.music}}</b> {{sim.musicText}}</li>
+      <li><b>{{sim.cameras}}</b> {{sim.camerasText}}</li>
+      <li><b>{{sim.scene}}</b> {{sim.sceneText}}</li>
+    </ul>
+    <div class="scenes">
+      <p class="scenes__title">{{sim.presets}}</p>
+      <a class="scene" href="../#clover.300.spectrum.40.10.lumen-482"><span class="dot dot--spectrum"></span>{{sim.preset1}}<code>clover.300.spectrum.40.10.lumen-482</code></a>
+      <a class="scene" href="../#wave.260.ice.50.11.aurora-17"><span class="dot dot--ice"></span>{{sim.preset2}}<code>wave.260.ice.50.11.aurora-17</code></a>
+      <a class="scene" href="../#oval.220.warm.35.10.halo-905"><span class="dot dot--warm"></span>{{sim.preset3}}<code>oval.220.warm.35.10.halo-905</code></a>
+      <a class="scene" href="../#eight.320.spectrum.60.9.prism-64"><span class="dot dot--spectrum"></span>{{sim.preset4}}<code>eight.320.spectrum.60.9.prism-64</code></a>
+      <a class="cta primary cta--wide" href="../">{{hero.open}}</a>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="inspiration">
+  <div class="head">
+    <p class="kicker">{{inspo.kicker}}</p>
+    <h2>DEVIATION</h2>
+  </div>
+  <div class="inspo">
+    <div class="inspo__text">
+      <p>{{inspo.p1}}</p>
+      <p>{{inspo.p2}}</p>
+      <p><a class="cta" href="https://www.instagram.com/p/DOdgUZWDD6o/?img_index=1">{{inspo.post}}</a></p>
+    </div>
+  </div>
+  <p class="inspo__note">{{inspo.note}}</p>
+</section>
+
+</main>
+
+<footer class="foot">
+  <p><span class="spectral">Prism Rail</span> · {{foot.text}}</p>
+  <p><a href="{{github}}">github.com/nemilya/prism-rail</a> · <a href="{{livePlayer}}">{{foot.live}}</a></p>
+</footer>
+
+<script src="{{assets}}landing.js"></script>
+</body>
+</html>

@@ -1,75 +1,91 @@
 # Prism Rail
 
-Браузерный 3D-симулятор световой инсталляции. Игрушечная тележка с двумя боковыми прожекторами едет по
-замкнутой трассе в тёмной комнате среди сотен дихроичных стёкол. Свет отражается и проходит сквозь стёкла,
-рисуя по комнате цветные блики, а генеративная музыка следует за светом: каждое стекло в луче звучит своей нотой.
+**English** · [Русский](README.ru.md)
 
-![Prism Rail: тележка с прожекторами среди цветных стёкол](docs/screenshot.jpg)
+**Demo: [nemilya.me/projects/prism-rail](https://nemilya.me/projects/prism-rail/)**
 
-## Что на сайте
+A 3D light-installation simulator in the browser. A toy cart with two side spotlights rolls along a closed
+track in a dark room among hundreds of dichroic glass panes. The light bounces off and passes through the glass,
+painting colored spots across the room, and generative music follows the light: every pane in the beam plays its own note.
 
-| адрес | что там |
+![Prism Rail: a cart with spotlights among colored glass](docs/screenshot.jpg)
+
+## The site
+
+The site is bilingual: English is the primary language (at the root), Russian lives in `ru/`. The EN · RU switch is
+at the top right; a Russian-speaking visitor arriving at the main page is sent to `ru/` automatically (browser
+language or time zone, as in `nemilya/scantunnel`), and an explicit choice is remembered.
+
+| path | what's there |
 |---|---|
-| `/` | симулятор: заставка «Смотреть со звуком» — один клик запускает сцену и музыку |
-| `/#clover.300.spectrum.40.10.lumen-482` | сразу нужная сцена: код — форма трассы, число стёкол, палитра, притяжение, размер, зерно |
-| `about/` | «О проекте»: ролик, физика, кадры симулятора, вдохновение |
-| `about/#video` | ролик «Откуда в темноте радуга» с главами и субтитрами |
-| `about/#physics` | физика света: преломление, дисперсия, радуга, дихроичное стекло |
-| `about/#sim` | что умеет симулятор и готовые сцены |
-| `about/#inspiration` | вдохновение |
-| `video/?film=refraction` | тот же ролик в живом плеере: кадры рисует симулятор прямо в браузере |
+| `/`, `ru/` | the simulator: the “Watch with sound” splash starts the scene and the music with one click |
+| `/#clover.300.spectrum.40.10.lumen-482` | a specific scene: the code is track shape, pane count, palette, pull, size, seed |
+| `about/`, `ru/about/` | “About”: the video, the physics, simulator stills, inspiration |
+| `about/#video` | the video “A rainbow in the dark” with chapters and subtitles |
+| `about/#physics` | the physics of light: refraction, dispersion, rainbows, dichroic glass |
+| `video/?film=refraction&lang=en` | the same video in the live player: the simulator draws the frames right in the browser |
 
-В симуляторе внизу — управление сценой (пауза, камера, новая сцена, звук) и шестерёнка с настройками
-сцены, света и звука. Вверху справа — разделы сайта. Клавиши: Space — пауза, C — камера, R — новая сцена,
-M — музыка, H — скрыть интерфейс, 1–5 — пресеты.
+At the bottom of the simulator are the scene controls (pause, camera, new scene, sound) and a gear with
+scene, light and sound settings. At the top right are the site sections and the language. Keys: Space — pause,
+C — camera, R — new scene, M — music, H — hide the interface, 1–5 — presets.
 
-Только для компьютера: нужны WebGL и звук.
+Desktop only: WebGL and sound are required.
 
-## Вдохновение
+## The video
 
-Проект вдохновлён инсталляцией **DEVIATION** студии Свена Зауэра —
-[пост в Instagram](https://www.instagram.com/p/DOdgUZWDD6o/?img_index=1).
+“A rainbow in the dark” (`video/films/refraction/`) — in English and Russian. **This is a test video: a demo of
+how well Claude Opus can visualize and explain physics. It has not been reviewed and is provided as is** — the
+video itself and the “About” page say so too.
 
-## Устройство
+## Inspiration
 
-| путь | что это |
+The project is inspired by **DEVIATION**, an installation by Studio Sven Sauer —
+[Instagram post](https://www.instagram.com/p/DOdgUZWDD6o/?img_index=1).
+
+## Layout
+
+| path | what it is |
 |---|---|
-| `sim/index.html` | симулятор одним файлом (Three.js r128 + Tone.js 14.8 с CDN); `?embed` — режим съёмки для роликов |
-| `index.html` | в репозитории — переход в `sim/` (код сцены сохраняется); на сайте его место занимает сам симулятор |
-| `about/` | страница «О проекте» |
-| `video/` | ролики: сцены, чертежи, озвучка диалогом, рендер MP4 — подробно в [`video/README.md`](video/README.md) |
-| `tools/dist.mjs` | сборка сайта в `dist/` |
-| `docs/spec.md` | постановка задачи |
+| `sim/index.html` | the simulator in one file (Three.js r128 + Tone.js 14.8 from a CDN); the UI is in English, Russian is the `RU` dictionary in the same file; `?embed` is the capture mode for videos |
+| `site/` | the site per language: `site.mjs` (URL, languages), `i18n/en.mjs`, `i18n/ru.mjs` (texts), `about.html` (the “About” template), `lang.js` (language auto-pick) |
+| `about/` | images, styles and script of the “About” page |
+| `index.html` | in the repo — a redirect to `sim/` (the scene code is kept); on the site the simulator itself takes its place |
+| `video/` | videos: scenes, chalk drawings, dialogue voice-over, MP4 rendering — see [`video/README.md`](video/README.md) (in Russian) |
+| `tools/site.mjs`, `tools/dist.mjs` | per-language pages and the site build into `dist/` |
+| `docs/i18n.md` | where the translations live and how to add a language (in Russian) |
+| `docs/spec.md` | the original spec (in Russian) |
 
-## Команды
+## Commands
 
-Нужны Node 22 и `ffmpeg`. Все команды — из корня, полный список — `make help`.
+Requires Node 22 and `ffmpeg`. Run everything from the root; `make help` lists all targets.
 
 ```bash
-make install                     # Playwright, Chromium, локальные three.js и Tone.js (один раз)
-make play                        # локально: симулятор, «О проекте», плеер ролика — http://127.0.0.1:8790/
-make test                        # тексты, сцены, звуки, детерминизм, API симулятора
+make install                     # Playwright, Chromium, local three.js and Tone.js (once)
+make play                        # locally: the site (en and ru/), “About”, the video player — http://127.0.0.1:8790/
+make test                        # texts, scenes, sounds, determinism, simulator API, site pages and translation
 
-make voice FILM=refraction       # озвучка (нужен OPENROUTER_API_KEY, синтез платный)
-make video FILM=refraction       # MP4 со звуком → out/refraction/
-make web FILM=refraction         # лёгкая версия для сайта → out/refraction/web/
+make voice FILM=refraction LANGS=en   # voice-over (needs OPENROUTER_API_KEY; synthesis is paid)
+make video FILM=refraction LANGS=en   # MP4 with sound → out/refraction/
+make web FILM=refraction LANGS=en     # a light version for the site → out/refraction/web/
 
-make dist                        # готовый сайт → dist/
-make preview                     # собрать dist/ и открыть: http://127.0.0.1:8791/
-make deploy                      # собрать и выложить rsync'ом на DEPLOY
+make dist                        # the finished site → dist/
+make preview                     # build dist/ and open it: http://127.0.0.1:8791/
+make deploy                      # build and upload with rsync to DEPLOY
 ```
 
-`out/` и `dist/` — производное, в git их нет.
+`out/` and `dist/` are build output and are not in git.
 
-## Выкладка
+## Deploying
 
-`make dist` собирает в `dist/` всё, что нужно браузеру: симулятор в корне, `sim/` для старых ссылок,
-`about/`, веб-версию ролика в `media/` (из `out/refraction/web/`) и живой плеер `video/`. Содержимое
-`dist/` копируется на хостинг как есть. Если веб-версии ролика нет, «О проекте» показывает живой плеер.
+`make dist` puts everything the browser needs into `dist/`: the simulator and “About” in English at the root and
+in Russian in `ru/`, `sim/` for old links, web versions of the video in `media/` (from `out/refraction/web/`, one
+per language), the live player `video/`, `lang.js` and `sitemap.xml`. Copy the contents of `dist/` to the host
+as is. If the web version of the video is missing for a language, “About” in that language shows the live player.
 
-Все ссылки относительные, поэтому сайт работает и в подпапке, например `/projects/prism-rail/` (адрес —
-с косой чертой на конце). Для `make deploy` укажите путь в `local.mk`:
+All links are relative, so the site also works from a subfolder such as `/projects/prism-rail/` (with a trailing
+slash). The URL for canonical, hreflang and `sitemap.xml` is `url` in `site/site.mjs`.
+For `make deploy`, set the path in `local.mk`:
 
 ```make
-DEPLOY = user@host:/путь/projects/prism-rail/
+DEPLOY = user@host:/path/projects/prism-rail/
 ```

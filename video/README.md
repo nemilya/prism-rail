@@ -6,21 +6,28 @@
 
 | ролик | что это | сценарий |
 |---|---|---|
-| `refraction` | «Откуда в темноте радуга», ~3 мин: одно стекло в луче → стоп-кадр уходит в чертёж → преломление и закон Снеллиуса → дисперсия в призме → радуга в капле → дихроичное стекло и сдвиг цвета с углом → обратно в комнату с живыми числами | `SCRIPT-refraction.md` |
+| `refraction` | «Откуда в темноте радуга» (en: «A rainbow in the dark»), ~3,5 мин, английский и русский: одно стекло в луче → стоп-кадр уходит в чертёж → преломление и закон Снеллиуса → дисперсия в призме → радуга в капле → дихроичное стекло и сдвиг цвета с углом → обратно в комнату с живыми числами | `SCRIPT-refraction.md` |
 
 ```bash
 make install                              # Playwright + локальные three.js и Tone.js (в облаке — хук сессии)
 make test                                 # тексты, сцены, звуки, детерминизм, API симулятора
 make play                                 # плеер: http://127.0.0.1:8790/video/?film=refraction (&t=40, &subs=1)
 make stills FILM=refraction T=5,40,90     # пробные кадры + контактный лист out/refraction/still-*-sheet.png
-make voice FILM=refraction                # озвучка (нужен OPENROUTER_API_KEY) + музыка и звуки → films/refraction/voice/ru.m4a
-make video FILM=refraction                # MP4 1280×720 со звуком → out/refraction/refraction-ru-16x9-720p.mp4
+make voice FILM=refraction LANGS=en       # озвучка (нужен OPENROUTER_API_KEY) + музыка и звуки → films/refraction/voice/en.m4a
+make video FILM=refraction LANGS=en       # MP4 1280×720 со звуком → out/refraction/refraction-en-16x9-720p.mp4
+make video FILM=refraction                # без LANGS — все языки ролика (en, ru)
 make video FILM=refraction SIZE=1080      # 1920×1080
 make web FILM=refraction                  # лёгкая версия для сайта → out/refraction/web/ (см. ниже)
 node video/scripts/video-render.mjs refraction ru --from 40 --to 60   # кусок ролика
 node video/scripts/video-voice.mjs refraction ru --engine espeak      # черновой робот-голос для таймингов (не коммитить)
 node video/scripts/video-voice.mjs refraction ru --redo 4             # заново реплики сцены 4
 ```
+
+**Языки.** Тексты и реплики — `films/<id>/i18n.js`, по блоку на язык (ключи и длины списков совпадают — тест);
+голоса — `voice.config.json` → `voice.<lang>`, `instructions.<lang>`; подписи плеера — `UI` в `player.js`,
+в плеере — кнопки EN / RU, `&lang=`. Пока озвучки языка нет, плеер и рендер идут по оценке длины реплик.
+Плашка `disclaimer` («тестовый ролик: проверка Claude Opus, без ревью, как есть») — в первой сцене и на
+финальной карточке; таймлайн она не меняет. Подробно — `docs/i18n.md`.
 
 Нужны Node 22 и `ffmpeg`. Без видеокарты (облачный контейнер) WebGL программный: ~0,5–1 с на кадр 720p,
 ролик целиком — около часа. На Mac и Windows рендер по умолчанию идёт на видеокарте (окно Chromium

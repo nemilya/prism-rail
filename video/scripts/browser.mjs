@@ -21,14 +21,25 @@ export const OUT = join(ROOT, 'out');
 export const rel = (p) => p.replace(`${ROOT}/`, '');
 const TYPES = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css',
-  '.json': 'application/json', '.m4a': 'audio/mp4', '.mp4': 'video/mp4', '.wav': 'audio/wav', '.vtt': 'text/vtt',
+  '.json': 'application/json', '.xml': 'application/xml', '.m4a': 'audio/mp4', '.mp4': 'video/mp4', '.wav': 'audio/wav', '.vtt': 'text/vtt',
   '.ttf': 'font/ttf', '.woff2': 'font/woff2', '.jpg': 'image/jpeg', '.png': 'image/png', '.svg': 'image/svg+xml',
 };
 
-/** Статика из корня репозитория (или другой папки, например dist/), с Range (иначе Chrome не перематывает MP4 и звук) */
-export function serve(port = 0, host = '127.0.0.1', root = ROOT) {
-  const server = createServer((req, res) => {
-    const p = join(root, decodeURIComponent(new URL(req.url, 'http://x').pathname).replace(/\/$/, '/index.html'));
+/** Статика из корня репозитория (или другой папки, например dist/), с Range (иначе Chrome не перематывает MP4 и звук).
+ * pages() → { 'index.html': html, … } — сгенерированные страницы поверх статики (make play: tools/site.mjs) */
+export function serve(port = 0, host = '127.0.0.1', root = ROOT, pages = null) {
+  const server = createServer(async (req, res) => {
+    const path = decodeURIComponent(new URL(req.url.replace(/^\/+/, '/'), 'http://x').pathname).replace(/\/$/, '/index.html');
+    if (pages) {
+      try {
+        const body = (await pages())[path.slice(1)];
+        if (body !== undefined) {
+          res.writeHead(200, { 'content-type': TYPES[extname(path)] || 'text/plain; charset=utf-8', 'cache-control': 'no-cache' }).end(body);
+          return;
+        }
+      } catch (e) { res.writeHead(500, { 'content-type': 'text/plain; charset=utf-8' }).end(String(e.stack || e)); return; }
+    }
+    const p = join(root, path);
     let st;
     try {
       if (!p.startsWith(root)) throw new Error();

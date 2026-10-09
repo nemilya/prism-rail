@@ -2,8 +2,74 @@
  * voice — диалог: по списку реплик на сцену, [секунда от начала сцены | null, текст, кто];
  * null — сразу после предыдущей. Кто: he — ведущий (спрашивает), she — физик (объясняет);
  * голоса — в voice.config.json. Формулы голосу пишем словами («эн-один», «синус угла»).
- * События на экране привязаны к репликам (env.cue(k) в film.js), а не к секундам. */
+ * События на экране привязаны к репликам (env.cue(k) в film.js), а не к секундам.
+ * nm, dec — единица длины волны и десятичный знак в живых числах; disclaimer — плашка
+ * «тестовый ролик» в начале и в конце. Ключи и длины списков во всех языках одинаковые (make test). */
 export default {
+  en: {
+    title: 'A rainbow in the dark — Prism Rail',
+    chapters: ['Cart and glass', 'One pane', 'Freeze frame', 'Refraction', 'Dispersion', 'Rainbow',
+      'Dichroic glass', 'Back to the room', 'Finale'],
+    hook: { kicker: 'Prism Rail · physics of light', title: 'A rainbow in the dark', sub: 'refraction, dispersion and dichroic glass' },
+    glass: { refl: 'reflected', trans: 'passed through', angle: 'another angle —\nanother color' },
+    snell: {
+      air: 'air', glass: 'glass', slow: 'light is 1.5 times\nslower in glass', normal: 'normal',
+      n1: 'n_1 = 1.00', n2: 'n_2 ≈ 1.5', diamond: 'diamond: n ≈ 2.4', cv: 'n = c / v', cvNote: 'c — speed of light in a vacuum',
+    },
+    disp: {
+      graph: 'refractive index', blue: 'blue: n ≈ 1.53', red: 'red: n ≈ 1.51',
+      newton: 'Newton, 1666', word: 'dispersion', exag: 'spread exaggerated ×5',
+    },
+    rain: {
+      drop: 'water drop', inSun: 'sun', twice: '2 refractions\n+ 1 reflection', outside: 'red on the outside', sun: 'sun behind you',
+      exag: 'angle gap exaggerated ×4',
+    },
+    dichro: {
+      layers: 'coating layers ~100 nm', sum: 'reflections add up', refl: 'reflected', trans: 'transmitted',
+      shift: 'angle grows → wave gets shorter',
+    },
+    back: { live: 'pane in the beam' },
+    nm: 'nm', dec: '.',
+    disclaimer: 'Test video: how well Claude Opus can visualize and explain physics.\nThe video has not been reviewed and is provided as is.',
+    end: {
+      title: 'Prism Rail',
+      lines: ['n_1 · sin θ_1 = n_2 · sin θ_2', 'n = n(λ)', 'λ_{peak} = λ_0 · \\sqrt{1 − (sin θ / n)^2}'],
+      cta: 'The simulator runs in your browser',
+      small: 'github.com/nemilya/prism-rail',
+    },
+    voice: [
+      [[0.8, 'A tiny cart, two little spotlights and three hundred pieces of glass. And a rainbow running around the room.', 'he'],
+        [null, 'And nobody painted the white light. All these colors were already inside it.', 'she']],
+      [[0.6, 'Look: the beam hit the glass — and split into two colors.', 'he'],
+        [null, 'Part of the light bounced off, part went straight through. And their colors are different — they complement each other.', 'she'],
+        [null, 'And if the cart rolls a little further?', 'he'],
+        [null, 'The angle changes — and the color drifts. Remember that, we’ll come back to it.', 'she']],
+      [[0.4, 'Let’s freeze the frame. What actually happens to a beam at the edge of the glass?', 'he']],
+      [[0.6, 'At the boundary, light changes speed. In glass it travels about one and a half times slower than in air.', 'she'],
+        [null, 'And that’s why it turns. That’s refraction.', 'she'],
+        [null, 'Snell’s law: n one times the sine of the angle of incidence equals n two times the sine of the angle of refraction.', 'she'],
+        [null, 'So the bigger n is, the more the beam leans toward the normal?', 'he'],
+        [null, 'Yes. And n tells you how many times slower light travels in a material than in a vacuum.', 'she']],
+      [[0.4, 'But the beam just turned. Where do the colors come from?', 'he'],
+        [null, 'The trick is that glass has a slightly different n for different colors: bigger for blue, smaller for red.', 'she'],
+        [null, 'White light is a mix of all colors. At the boundary each one turns by its own angle, and the mix fans out.', 'she'],
+        [null, 'Like Newton and his prism!', 'he'],
+        [null, 'Exactly. It’s called dispersion. The difference is only about one percent, but after two faces of a prism you can see it with your own eyes.', 'she']],
+      [[0.4, 'And a rainbow in the sky — is that a prism too?', 'he'],
+        [null, 'Just a round one. A drop refracts the ray on the way in, reflects it off its back wall and refracts it once more on the way out.', 'she'],
+        [null, 'Red comes out at about forty-two degrees, violet at about forty.', 'she'],
+        [null, 'That’s why a rainbow is an arc, and red is always on the outside.', 'she']],
+      [[0.4, 'But there are no drops or prisms in our room. The glass panes are flat.', 'he'],
+        [null, 'Their secret is the coating: dozens of layers thinner than a wavelength. The reflections from the layers add up, and only one color gets stronger.', 'she'],
+        [null, 'That color is reflected, and the rest of the light passes through. That’s why the reflection and the light that passes through have complementary colors.', 'she'],
+        [null, 'And why does the color drift when the angle changes?', 'he'],
+        [null, 'Snell again. Inside a layer the ray travels at its own angle, and the path difference between the reflections gets shorter.', 'she'],
+        [null, 'The larger the angle, the shorter the wavelength. A red pane turns orange, a yellow one turns green.', 'she']],
+      [[1.2, 'So the cart moves, the angle changes — and every pane runs through its own colors.', 'he'],
+        [null, 'Yes. Light doesn’t paint anything. The glass simply chooses which part of the white to reflect and which to let through.', 'she']],
+      [[0.6, 'All right, I’m off to see what color the next pane will be.', 'he']],
+    ],
+  },
   ru: {
     title: 'Откуда в темноте радуга — Prism Rail',
     chapters: ['Тележка и стёкла', 'Одно стекло', 'Стоп-кадр', 'Преломление', 'Дисперсия', 'Радуга',
@@ -27,6 +93,8 @@ export default {
       shift: 'угол растёт → волна короче',
     },
     back: { live: 'стекло в луче' },
+    nm: 'нм', dec: ',',
+    disclaimer: 'Тестовый ролик: проверка того, как Claude Opus визуализирует и объясняет физику.\nРолик не проходил ревью и предоставляется как есть.',
     end: {
       title: 'Prism Rail',
       lines: ['n_1 · sin θ_1 = n_2 · sin θ_2', 'n = n(λ)', 'λ_{пик} = λ_0 · \\sqrt{1 − (sin θ / n)^2}'],

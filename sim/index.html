@@ -1,10 +1,11 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <link rel="icon" href="data:,">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Prism Rail</title>
+<meta name="description" content="Prism Rail is a 3D light-installation simulator in your browser: a cart with two spotlights rolls among dichroic glass, the light paints rainbows across a dark room, and the music follows the light.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Onest:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -77,6 +78,9 @@ button,select,input{font:inherit;color:inherit}
 .site{position:fixed;right:20px;top:calc(20px + env(safe-area-inset-top,0px));display:flex;gap:4px;transition:opacity .4s}
 .site a{padding:6px 12px;border-radius:999px;font-size:13px;font-weight:500;color:var(--on-stage-muted);text-decoration:none;white-space:nowrap}
 .site a:hover{color:var(--on-stage);background:rgba(255,255,255,.08)}
+.site .langs{display:flex;margin-left:6px;padding-left:8px;border-left:1px solid rgba(255,255,255,.14)}
+.site .langs a{padding:6px 8px;font-size:12px;letter-spacing:.04em}
+.site .langs a[aria-current]{color:var(--on-stage)}
 .dock button{border:0;background:transparent;padding:8px 14px;border-radius:999px;font-size:13px;font-weight:500;white-space:nowrap;cursor:pointer;color:var(--ink)}
 .dock button:hover{background:var(--chip)}
 .dock button[aria-pressed="true"]{background:var(--chip)}
@@ -148,148 +152,307 @@ body.embed .brand,body.embed .site,body.embed .fps,body.embed .intro,body.embed 
 </style>
 </head>
 <body>
-<div id="stage" aria-label="3D-сцена: тележка с прожекторами среди дихроичных стёкол"></div>
+<div id="stage" aria-label="3D scene: a cart with spotlights among dichroic glass"></div>
 
-<div class="brand"><h1><a href="../about/" title="О проекте и обучающий ролик">Prism Rail</a></h1><p>свет, стекло и звук на игрушечной трассе</p></div>
-<nav class="site" aria-label="Разделы сайта">
-  <a href="../about/#video">Ролик</a>
-  <a href="../about/#physics">Физика света</a>
-  <a href="../about/">О проекте</a>
+<div class="brand"><h1><a href="../about/" title="About the project and the explainer video">Prism Rail</a></h1><p>light, glass and sound on a toy track</p></div>
+<nav class="site" aria-label="Site sections">
+  <a href="../about/#video">Video</a>
+  <a href="../about/#physics">Physics of light</a>
+  <a href="../about/">About</a>
 </nav>
 <div class="fps" id="fps"></div>
 
 <div class="intro" id="intro">
   <div class="card">
     <h2>Prism Rail</h2>
-    <p>Игрушечная тележка с двумя прожекторами едет сквозь рощу дихроичных стёкол. Каждое стекло, попавшее в луч, вспыхивает своим цветом и звучит своей нотой.</p>
+    <p>A toy cart with two spotlights rolls through a grove of dichroic glass. Every pane caught in the beam flashes its own color and plays its own note.</p>
     <div class="actions">
-      <button class="cta primary" id="startSound">Смотреть со звуком</button>
-      <button class="cta" id="startMute">Без звука</button>
+      <button class="cta primary" id="startSound">Watch with sound</button>
+      <button class="cta" id="startMute">Without sound</button>
     </div>
-    <small>Space — пауза, C — камера, H — скрыть интерфейс, M — музыка</small>
-    <a class="back" href="../about/">О проекте и обучающий ролик</a>
+    <small>Space — pause, C — camera, H — hide interface, M — music</small>
+    <a class="back" href="../about/">About the project and the explainer video</a>
   </div>
 </div>
 
-<nav class="dock" id="dock" aria-label="Управление">
-  <button id="bPause" title="Пауза (Space)">Пауза</button>
-  <button id="bCam" title="Следующая камера (C)">Камера: кино</button>
-  <button id="bNew" title="Новая сцена (R)">Новая сцена</button>
-  <button id="bSound" title="Музыка (M)">Звук выкл.</button>
-  <button id="bSnap" title="Снимок PNG (P)" hidden>Снимок</button>
+<nav class="dock" id="dock" aria-label="Controls">
+  <button id="bPause" title="Pause (Space)">Pause</button>
+  <button id="bCam" title="Next camera (C)">Camera: cinema</button>
+  <button id="bNew" title="New scene (R)">New scene</button>
+  <button id="bSound" title="Music (M)">Sound off</button>
+  <button id="bSnap" title="PNG snapshot (P)" hidden>Snapshot</button>
   <span class="sep"></span>
-  <button id="bPanel" class="gear" aria-pressed="false" aria-controls="panel" title="Настройки сцены, света и звука" aria-label="Настройки"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+  <button id="bPanel" class="gear" aria-pressed="false" aria-controls="panel" title="Scene, light and sound settings" aria-label="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
 </nav>
 
-<aside class="panel" id="panel" aria-label="Настройки" hidden>
+<aside class="panel" id="panel" aria-label="Settings" hidden>
   <section>
-    <h2>Сцена</h2>
-    <div class="row"><div class="lab">Пресет</div>
+    <h2>Scene</h2>
+    <div class="row"><div class="lab">Preset</div>
       <select data-k="preset">
-        <option value="reference">Референс</option>
-        <option value="ice">Ледяной</option>
-        <option value="sunset">Закат</option>
-        <option value="minimal">Минимал</option>
-        <option value="chaos">Хаос</option>
+        <option value="reference">Reference</option>
+        <option value="ice">Ice</option>
+        <option value="sunset">Sunset</option>
+        <option value="minimal">Minimal</option>
+        <option value="chaos">Chaos</option>
       </select></div>
-    <div class="row"><div class="lab">Форма трассы</div>
+    <div class="row"><div class="lab">Track shape</div>
       <select data-k="shape">
-        <option value="clover">Клевер</option>
-        <option value="oval">Овал</option>
-        <option value="wave">Змейка</option>
-        <option value="eight">Восьмёрка</option>
-        <option value="random">Случайная</option>
+        <option value="clover">Clover</option>
+        <option value="oval">Oval</option>
+        <option value="wave">Wave</option>
+        <option value="eight">Figure eight</option>
+        <option value="random">Random</option>
       </select></div>
-    <div class="row"><div class="lab">Палитра стёкол</div>
+    <div class="row"><div class="lab">Glass palette</div>
       <select data-k="palette">
-        <option value="spectrum">Полный спектр</option>
-        <option value="ice">Холодная</option>
-        <option value="warm">Тёплая</option>
-        <option value="mono">Моно</option>
+        <option value="spectrum">Full spectrum</option>
+        <option value="ice">Cool</option>
+        <option value="warm">Warm</option>
+        <option value="mono">Mono</option>
       </select></div>
-    <div class="row"><div class="lab">Стёкол <output data-out="count"></output></div>
+    <div class="row"><div class="lab">Panes <output data-out="count"></output></div>
       <div class="rng"><input type="range" data-k="count" min="40" max="400" step="10"><div class="fill"></div></div></div>
-    <div class="row"><div class="lab">Притяжение к трассе <output data-out="attract"></output></div>
+    <div class="row"><div class="lab">Pull toward the track <output data-out="attract"></output></div>
       <div class="rng"><input type="range" data-k="attract" min="0.15" max="1.2" step="0.05"><div class="fill"></div></div></div>
-    <div class="row"><div class="lab">Размер стёкол <output data-out="sizeScale"></output></div>
+    <div class="row"><div class="lab">Pane size <output data-out="sizeScale"></output></div>
       <div class="rng"><input type="range" data-k="sizeScale" min="0.6" max="1.8" step="0.1"><div class="fill"></div></div></div>
-    <div class="row"><div class="lab">Код сцены</div>
-      <div class="code"><input id="codeInput" spellcheck="false" aria-label="Код сцены"><button class="btn" id="codeApply">Применить</button></div>
-      <div class="btns"><button class="btn" id="codeCopy">Скопировать код</button></div>
-      <p class="hint">Код повторяет трассу и расстановку стёкол один в один.</p></div>
+    <div class="row"><div class="lab">Scene code</div>
+      <div class="code"><input id="codeInput" spellcheck="false" aria-label="Scene code"><button class="btn" id="codeApply">Apply</button></div>
+      <div class="btns"><button class="btn" id="codeCopy">Copy code</button></div>
+      <p class="hint">The code reproduces the track and the glass layout exactly.</p></div>
   </section>
   <section>
-    <h2>Тележка</h2>
-    <div class="row"><div class="lab">Скорость <output data-out="speed"></output></div>
+    <h2>Cart</h2>
+    <div class="row"><div class="lab">Speed <output data-out="speed"></output></div>
       <div class="rng"><input type="range" data-k="speed" min="0.05" max="0.6" step="0.01"><div class="fill"></div></div></div>
-    <div class="row inline"><div class="lab">Остановки</div><label class="switch"><input type="checkbox" data-k="stops" aria-label="Остановки"><span></span></label></div>
+    <div class="row inline"><div class="lab">Stops</div><label class="switch"><input type="checkbox" data-k="stops" aria-label="Stops"><span></span></label></div>
   </section>
   <section>
-    <h2>Свет</h2>
-    <div class="row"><div class="lab">Угол конуса <output data-out="cone"></output></div>
+    <h2>Light</h2>
+    <div class="row"><div class="lab">Cone angle <output data-out="cone"></output></div>
       <div class="rng"><input type="range" data-k="cone" min="6" max="25" step="1"><div class="fill"></div></div></div>
-    <div class="row"><div class="lab">Яркость <output data-out="intensity"></output></div>
+    <div class="row"><div class="lab">Brightness <output data-out="intensity"></output></div>
       <div class="rng"><input type="range" data-k="intensity" min="0.3" max="2" step="0.05"><div class="fill"></div></div></div>
-    <div class="row"><div class="lab">Наклон <output data-out="pitch"></output></div>
+    <div class="row"><div class="lab">Tilt <output data-out="pitch"></output></div>
       <div class="rng"><input type="range" data-k="pitch" min="-10" max="10" step="0.5"><div class="fill"></div></div></div>
-    <div class="row"><div class="lab">Поворот вперёд/назад <output data-out="yaw"></output></div>
+    <div class="row"><div class="lab">Aim forward/back <output data-out="yaw"></output></div>
       <div class="rng"><input type="range" data-k="yaw" min="-30" max="30" step="1"><div class="fill"></div></div></div>
-    <div class="row"><div class="lab">Дым <output data-out="smoke"></output></div>
+    <div class="row"><div class="lab">Haze <output data-out="smoke"></output></div>
       <div class="rng"><input type="range" data-k="smoke" min="0" max="1" step="0.05"><div class="fill"></div></div></div>
-    <div class="row inline"><div class="lab">Сканирование</div><label class="switch"><input type="checkbox" data-k="scan" aria-label="Сканирование"><span></span></label></div>
-    <div class="row inline"><div class="lab">Передний прожектор</div><label class="switch"><input type="checkbox" data-k="front" aria-label="Передний прожектор"><span></span></label></div>
+    <div class="row inline"><div class="lab">Sweep</div><label class="switch"><input type="checkbox" data-k="scan" aria-label="Sweep"><span></span></label></div>
+    <div class="row inline"><div class="lab">Front spotlight</div><label class="switch"><input type="checkbox" data-k="front" aria-label="Front spotlight"><span></span></label></div>
   </section>
   <section>
-    <h2>Камера</h2>
-    <div class="row"><div class="lab">Режим</div>
+    <h2>Camera</h2>
+    <div class="row"><div class="lab">Mode</div>
       <select data-k="camera">
-        <option value="cinema">Кино</option>
-        <option value="orbit">Орбита</option>
-        <option value="onboard">На борту</option>
-        <option value="chase">Погоня</option>
+        <option value="cinema">Cinema</option>
+        <option value="orbit">Orbit</option>
+        <option value="onboard">On board</option>
+        <option value="chase">Chase</option>
       </select></div>
-    <p class="hint">Клик по сцене переключает на орбиту: вращение мышью, зум колесом.</p>
+    <p class="hint">Click the scene to switch to orbit: drag to rotate, scroll to zoom.</p>
   </section>
   <section id="musicSection">
-    <h2>Музыка</h2>
-    <div class="row inline"><div class="lab">Включена</div><label class="switch"><input type="checkbox" data-k="music" aria-label="Музыка"><span></span></label></div>
-    <div class="row"><div class="lab">Громкость <output data-out="volume"></output></div>
+    <h2>Music</h2>
+    <div class="row inline"><div class="lab">On</div><label class="switch"><input type="checkbox" data-k="music" aria-label="Music"><span></span></label></div>
+    <div class="row"><div class="lab">Volume <output data-out="volume"></output></div>
       <div class="rng"><input type="range" data-k="volume" min="0" max="1" step="0.05"><div class="fill"></div></div></div>
-    <div class="row"><div class="lab">Лад</div>
+    <div class="row"><div class="lab">Scale</div>
       <select data-k="mode">
-        <option value="auto">По палитре</option>
-        <option value="pent">Пентатоника</option>
-        <option value="lydian">Лидийский</option>
-        <option value="dorian">Дорийский</option>
-        <option value="whole">Целотонный</option>
-        <option value="single">Одна нота</option>
+        <option value="auto">Match palette</option>
+        <option value="pent">Pentatonic</option>
+        <option value="lydian">Lydian</option>
+        <option value="dorian">Dorian</option>
+        <option value="whole">Whole-tone</option>
+        <option value="single">Single note</option>
       </select></div>
-    <div class="row"><div class="lab">Дрон <output data-out="vDrone"></output></div>
+    <div class="row"><div class="lab">Drone <output data-out="vDrone"></output></div>
       <div class="rng"><input type="range" data-k="vDrone" min="0" max="1" step="0.05"><div class="fill"></div></div></div>
-    <div class="row"><div class="lab">Стекло <output data-out="vGlass"></output></div>
+    <div class="row"><div class="lab">Glass <output data-out="vGlass"></output></div>
       <div class="rng"><input type="range" data-k="vGlass" min="0" max="1" step="0.05"><div class="fill"></div></div></div>
-    <div class="row"><div class="lab">Стук колёс <output data-out="vPulse"></output></div>
+    <div class="row"><div class="lab">Wheel clatter <output data-out="vPulse"></output></div>
       <div class="rng"><input type="range" data-k="vPulse" min="0" max="1" step="0.05"><div class="fill"></div></div></div>
-    <div class="row"><div class="lab">Воздух <output data-out="vAir"></output></div>
+    <div class="row"><div class="lab">Air <output data-out="vAir"></output></div>
       <div class="rng"><input type="range" data-k="vAir" min="0" max="1" step="0.05"><div class="fill"></div></div></div>
   </section>
   <section>
-    <h2>Изображение</h2>
-    <div class="row"><div class="lab">Качество</div>
+    <h2>Image</h2>
+    <div class="row"><div class="lab">Quality</div>
       <select data-k="quality">
-        <option value="low">Низкое</option>
-        <option value="medium">Среднее</option>
-        <option value="high">Высокое</option>
+        <option value="low">Low</option>
+        <option value="medium">Medium</option>
+        <option value="high">High</option>
       </select></div>
-    <div class="row"><div class="lab">Свечение <output data-out="bloom"></output></div>
+    <div class="row"><div class="lab">Glow <output data-out="bloom"></output></div>
       <div class="rng"><input type="range" data-k="bloom" min="0" max="2.5" step="0.05"><div class="fill"></div></div></div>
-    <div class="row"><div class="lab">Зерно <output data-out="grain"></output></div>
+    <div class="row"><div class="lab">Grain <output data-out="grain"></output></div>
       <div class="rng"><input type="range" data-k="grain" min="0" max="1" step="0.05"><div class="fill"></div></div></div>
   </section>
 </aside>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<script>
+/* Язык интерфейса. В разметке и коде — английский (основной язык сайта), русский — словарь RU:
+ * ключ — английский текст, значение — перевод. Язык: ?lang=en|ru, иначе <html lang>
+ * (make dist кладёт копию с lang="ru" в ru/). Текст, которого нет в RU, остаётся английским.
+ * Переключатель EN · RU — по ссылкам link[rel=alternate][hreflang][data-href] (их вставляет
+ * сборка сайта, tools/site.mjs), без них (симулятор прямо из репозитория) — ?lang=. */
+(function () {
+  var RU = {
+  "3D scene: a cart with spotlights among dichroic glass": "3D-сцена: тележка с прожекторами среди дихроичных стёкол",
+  "About the project and the explainer video": "О проекте и обучающий ролик",
+  "light, glass and sound on a toy track": "свет, стекло и звук на игрушечной трассе",
+  "Site sections": "Разделы сайта",
+  "Video": "Ролик",
+  "Physics of light": "Физика света",
+  "About": "О проекте",
+  "A toy cart with two spotlights rolls through a grove of dichroic glass. Every pane caught in the beam flashes its own color and plays its own note.": "Игрушечная тележка с двумя прожекторами едет сквозь рощу дихроичных стёкол. Каждое стекло, попавшее в луч, вспыхивает своим цветом и звучит своей нотой.",
+  "Watch with sound": "Смотреть со звуком",
+  "Without sound": "Без звука",
+  "Space — pause, C — camera, H — hide interface, M — music": "Space — пауза, C — камера, H — скрыть интерфейс, M — музыка",
+  "Controls": "Управление",
+  "Pause (Space)": "Пауза (Space)",
+  "Pause": "Пауза",
+  "Next camera (C)": "Следующая камера (C)",
+  "New scene (R)": "Новая сцена (R)",
+  "New scene": "Новая сцена",
+  "Music (M)": "Музыка (M)",
+  "Sound off": "Звук выкл.",
+  "PNG snapshot (P)": "Снимок PNG (P)",
+  "Snapshot": "Снимок",
+  "Scene, light and sound settings": "Настройки сцены, света и звука",
+  "Settings": "Настройки",
+  "Scene": "Сцена",
+  "Preset": "Пресет",
+  "Reference": "Референс",
+  "Ice": "Ледяной",
+  "Sunset": "Закат",
+  "Minimal": "Минимал",
+  "Chaos": "Хаос",
+  "Track shape": "Форма трассы",
+  "Clover": "Клевер",
+  "Oval": "Овал",
+  "Wave": "Змейка",
+  "Figure eight": "Восьмёрка",
+  "Random": "Случайная",
+  "Glass palette": "Палитра стёкол",
+  "Full spectrum": "Полный спектр",
+  "Cool": "Холодная",
+  "Warm": "Тёплая",
+  "Mono": "Моно",
+  "Panes": "Стёкол",
+  "Pull toward the track": "Притяжение к трассе",
+  "Pane size": "Размер стёкол",
+  "Scene code": "Код сцены",
+  "Apply": "Применить",
+  "Copy code": "Скопировать код",
+  "The code reproduces the track and the glass layout exactly.": "Код повторяет трассу и расстановку стёкол один в один.",
+  "Cart": "Тележка",
+  "Speed": "Скорость",
+  "Stops": "Остановки",
+  "Light": "Свет",
+  "Cone angle": "Угол конуса",
+  "Brightness": "Яркость",
+  "Tilt": "Наклон",
+  "Aim forward/back": "Поворот вперёд/назад",
+  "Haze": "Дым",
+  "Sweep": "Сканирование",
+  "Front spotlight": "Передний прожектор",
+  "Camera": "Камера",
+  "Mode": "Режим",
+  "Cinema": "Кино",
+  "Orbit": "Орбита",
+  "On board": "На борту",
+  "Chase": "Погоня",
+  "Click the scene to switch to orbit: drag to rotate, scroll to zoom.": "Клик по сцене переключает на орбиту: вращение мышью, зум колесом.",
+  "Music": "Музыка",
+  "On": "Включена",
+  "Volume": "Громкость",
+  "Scale": "Лад",
+  "Match palette": "По палитре",
+  "Pentatonic": "Пентатоника",
+  "Lydian": "Лидийский",
+  "Dorian": "Дорийский",
+  "Whole-tone": "Целотонный",
+  "Single note": "Одна нота",
+  "Drone": "Дрон",
+  "Glass": "Стекло",
+  "Wheel clatter": "Стук колёс",
+  "Air": "Воздух",
+  "Image": "Изображение",
+  "Quality": "Качество",
+  "Low": "Низкое",
+  "Medium": "Среднее",
+  "High": "Высокое",
+  "Glow": "Свечение",
+  "Grain": "Зерно",
+  "The scene didn’t start": "Сцена не запустилась",
+  "Three.js failed to load. Check your internet connection and reload the page.": "Не загрузилась библиотека Three.js. Проверьте подключение к интернету и обновите страницу.",
+  "The browser denied access to WebGL. Turn on hardware acceleration and reload the page.": "Браузер не дал доступ к WebGL. Включите аппаратное ускорение и обновите страницу.",
+  "cinema": "кино",
+  "orbit": "орбита",
+  "on board": "на борту",
+  "chase": "погоня",
+  "Camera: ": "Камера: ",
+  " m": " м",
+  " m/s": " м/с",
+  " fps": " кадров/с",
+  "Sound didn’t start: the browser blocked audio": "Звук не запустился: браузер заблокировал аудио",
+  "Preset: ": "Пресет: ",
+  "Scene built from the code": "Сцена собрана по коду",
+  "Code not recognized: expected something like clover.300.spectrum.40.10.lumen-482": "Код не распознан: нужен формат вида clover.300.spectrum.40.10.lumen-482",
+  "Code copied": "Код скопирован",
+  "Code selected: copy it with Ctrl+C": "Выделил код: скопируйте его сочетанием Ctrl+C",
+  "New scene: ": "Новая сцена: ",
+  "Resume": "Дальше",
+  "Sound on": "Звук вкл.",
+  "The sound library failed to load": "Библиотека звука не загрузилась",
+  "The music follows the light": "Музыка следует за светом",
+  "Snapshot failed": "Снимок не получился",
+  "Snapshot saved": "Снимок сохранён",
+  "Snapshot not saved": "Снимок не сохранён"
+  };
+  var LANGS = { en: 'English', ru: 'Русский' };
+  var q = new URLSearchParams(location.search).get('lang');
+  var lang = LANGS[q] ? q : document.documentElement.lang === 'ru' ? 'ru' : 'en';
+  var dict = lang === 'ru' ? RU : null;
+  document.documentElement.lang = lang;
+  window.prismLang = lang;
+  window.prismT = function (s) { return dict && dict[s] != null ? dict[s] : s; };
+  if (dict) {
+    var tr = function (s) { var k = s.trim(); return dict[k] != null ? s.replace(k, dict[k]) : s; };
+    var walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    for (var n; (n = walk.nextNode());) if (n.nodeValue.trim()) n.nodeValue = tr(n.nodeValue);
+    document.querySelectorAll('[title], [aria-label]').forEach(function (el) {
+      ['title', 'aria-label'].forEach(function (a) { if (el.hasAttribute(a)) el.setAttribute(a, tr(el.getAttribute(a))); });
+    });
+  }
+  // EN · RU в разделах сайта; выбор запоминается (prism-lang — его читает lang.js на стартовой)
+  var alts = document.querySelectorAll('link[rel="alternate"][hreflang][data-href]');
+  var href = {};
+  for (var i = 0; i < alts.length; i++) href[alts[i].hreflang] = alts[i].getAttribute('data-href');
+  var box = document.createElement('span');
+  box.className = 'langs';
+  Object.keys(LANGS).forEach(function (code) {
+    var a = document.createElement('a');
+    a.textContent = code.toUpperCase();
+    a.lang = a.hreflang = code;
+    a.title = LANGS[code];
+    if (code === lang) a.setAttribute('aria-current', 'true');
+    a.href = href[code] || '?lang=' + code;
+    a.addEventListener('click', function (e) {
+      try { localStorage.setItem('prism-lang', code); } catch (err) { /* приватный режим */ }
+      if (code === lang) { e.preventDefault(); return; }
+      a.href = (href[code] || '?lang=' + code) + location.hash;  // код сцены — с собой
+    });
+    box.appendChild(a);
+  });
+  document.querySelector('.site').appendChild(box);
+})();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
@@ -302,16 +465,18 @@ body.embed .brand,body.embed .site,body.embed .fps,body.embed .intro,body.embed 
 <script>
 (function () {
 'use strict';
+const t = window.prismT || ((s) => s);  // перевод интерфейса (см. скрипт языка выше)
 
 function fatal(msg) {
   const d = document.createElement('div');
   d.className = 'fatal';
-  d.innerHTML = '<div><h2 style="margin:0 0 8px;font-weight:600">Сцена не запустилась</h2><p></p></div>';
-  d.querySelector('p').textContent = msg;
+  d.innerHTML = '<div><h2 style="margin:0 0 8px;font-weight:600"></h2><p></p></div>';
+  d.querySelector('h2').textContent = t('The scene didn’t start');
+  d.querySelector('p').textContent = t(msg);
   document.body.appendChild(d);
 }
 if (!window.THREE || !THREE.EffectComposer || !THREE.UnrealBloomPass || !THREE.OrbitControls) {
-  fatal('Не загрузилась библиотека Three.js. Проверьте подключение к интернету и обновите страницу.');
+  fatal('Three.js failed to load. Check your internet connection and reload the page.');
   return;
 }
 
@@ -337,7 +502,7 @@ const MODES = {
   pent:[0,2,4,7,9], lydian:[0,2,4,6,7,9,11], dorian:[0,2,3,5,7,9,10], whole:[0,2,4,6,8,10], single:[0,7]
 };
 const QUALITY = { low:{ pr:0.75, k:12, rays:8 }, medium:{ pr:1, k:20, rays:12 }, high:{ pr:1.5, k:32, rays:18 } };
-const CAM_NAMES = { cinema:'кино', orbit:'орбита', onboard:'на борту', chase:'погоня' };
+const CAM_NAMES = { cinema:t('cinema'), orbit:t('orbit'), onboard:t('on board'), chase:t('chase') };
 const CAM_ORDER = ['cinema','orbit','onboard','chase'];
 
 const P = Object.assign({
@@ -382,7 +547,7 @@ let renderer;
 try {
   renderer = new THREE.WebGLRenderer({ antialias:true, powerPreference:'high-performance', preserveDrawingBuffer:EMBED });
 } catch (e) {
-  fatal('Браузер не дал доступ к WebGL. Включите аппаратное ускорение и обновите страницу.');
+  fatal('The browser denied access to WebGL. Turn on hardware acceleration and reload the page.');
   return;
 }
 renderer.setClearColor(0x000000, 1);
@@ -1108,7 +1273,7 @@ const Music = {
   },
   async start() {
     if (!this.available || this.starting) return false;
-    if (!this.ready) { this.starting = true; try { await this.init(); } catch (e) { this.starting = false; toast('Звук не запустился: браузер заблокировал аудио'); return false; } this.starting = false; }
+    if (!this.ready) { this.starting = true; try { await this.init(); } catch (e) { this.starting = false; toast(t('Sound didn’t start: the browser blocked audio')); return false; } this.starting = false; }
     this.on = true; this.mix(true);
     this.chord(window.Tone.now() + 0.05);
     return true;
@@ -1194,7 +1359,7 @@ function setCamera(mode) {
   controls.enabled = mode === 'orbit';
   if (mode === 'orbit') { controls.target.copy(camTarget); controls.update(); }
   shotT = 0; ambush = null;
-  document.getElementById('bCam').textContent = 'Камера: ' + CAM_NAMES[mode];
+  document.getElementById('bCam').textContent = t('Camera: ') + CAM_NAMES[mode];
   syncControl('camera');
 }
 function trackPoint(s, out) { return curve.getPointAt(((s % L) + L) % L / L, out); }
@@ -1241,7 +1406,7 @@ renderer.domElement.addEventListener('pointerdown', () => { if (camMode !== 'orb
 /* ================= UI ================= */
 const $ = id => document.getElementById(id);
 const fmt = {
-  count:v => v, attract:v => (+v).toFixed(2) + ' м', sizeScale:v => '×' + (+v).toFixed(1), speed:v => (+v).toFixed(2) + ' м/с',
+  count:v => v, attract:v => (+v).toFixed(2) + t(' m'), sizeScale:v => '×' + (+v).toFixed(1), speed:v => (+v).toFixed(2) + t(' m/s'),
   cone:v => v + '°', intensity:v => (+v).toFixed(2), pitch:v => (v > 0 ? '+' : '') + (+v).toFixed(1) + '°', yaw:v => (v > 0 ? '+' : '') + v + '°',
   smoke:v => Math.round(v * 100) + '%', volume:v => Math.round(v * 100) + '%', vDrone:v => Math.round(v * 100) + '%', vGlass:v => Math.round(v * 100) + '%',
   vPulse:v => Math.round(v * 100) + '%', vAir:v => Math.round(v * 100) + '%', bloom:v => (+v).toFixed(2), grain:v => Math.round(v * 100) + '%'
@@ -1287,7 +1452,7 @@ function applyLive(k) {
 function applyPreset(name) {
   Object.assign(P, PRESETS[name]); P.preset = name;
   syncAll(); build();
-  toast('Пресет: ' + document.querySelector('[data-k="preset"] option[value="' + name + '"]').textContent);
+  toast(t('Preset: ') + document.querySelector('[data-k="preset"] option[value="' + name + '"]').textContent);
 }
 
 /* scene code */
@@ -1304,22 +1469,22 @@ function parseCode(s) {
   return true;
 }
 $('codeApply').addEventListener('click', () => {
-  if (parseCode($('codeInput').value)) { syncAll(); build(); toast('Сцена собрана по коду'); }
-  else toast('Код не распознан: нужен формат вида clover.300.spectrum.40.10.lumen-482');
+  if (parseCode($('codeInput').value)) { syncAll(); build(); toast(t('Scene built from the code')); }
+  else toast(t('Code not recognized: expected something like clover.300.spectrum.40.10.lumen-482'));
 });
 $('codeInput').addEventListener('keydown', e => { if (e.key === 'Enter') $('codeApply').click(); });
 $('codeCopy').addEventListener('click', async () => {
-  try { await navigator.clipboard.writeText(makeCode()); toast('Код скопирован'); }
-  catch (e) { $('codeInput').select(); toast('Выделил код: скопируйте его сочетанием Ctrl+C'); }
+  try { await navigator.clipboard.writeText(makeCode()); toast(t('Code copied')); }
+  catch (e) { $('codeInput').select(); toast(t('Code selected: copy it with Ctrl+C')); }
 });
 function newSeed() {
   const w = SEED_WORDS[Math.floor(Math.random() * SEED_WORDS.length)];
   P.seed = w + '-' + (100 + Math.floor(Math.random() * 900));
-  build(); toast('Новая сцена: ' + P.seed);
+  build(); toast(t('New scene: ') + P.seed);
 }
 
 /* dock */
-function setPaused(v) { paused = v; $('bPause').textContent = paused ? 'Дальше' : 'Пауза'; }
+function setPaused(v) { paused = v; $('bPause').textContent = t(paused ? 'Resume' : 'Pause'); }
 $('bPause').addEventListener('click', () => setPaused(!paused));
 $('bCam').addEventListener('click', () => setCamera(CAM_ORDER[(CAM_ORDER.indexOf(camMode) + 1) % CAM_ORDER.length]));
 $('bNew').addEventListener('click', newSeed);
@@ -1328,13 +1493,13 @@ $('bPanel').addEventListener('click', () => {
   const p = $('panel'); p.hidden = !p.hidden; $('bPanel').setAttribute('aria-pressed', String(!p.hidden));
 });
 function soundLabel() {
-  $('bSound').textContent = Music.on ? 'Звук вкл.' : 'Звук выкл.';
+  $('bSound').textContent = t(Music.on ? 'Sound on' : 'Sound off');
   $('bSound').classList.toggle('sound-on', Music.on);
   P.music = Music.on; syncControl('music');
 }
 async function startMusic() {
-  if (!Music.available) { toast('Библиотека звука не загрузилась'); P.music = false; syncControl('music'); return; }
-  const ok = await Music.start(); soundLabel(); if (ok) toast('Музыка следует за светом');
+  if (!Music.available) { toast(t('The sound library failed to load')); P.music = false; syncControl('music'); return; }
+  const ok = await Music.start(); soundLabel(); if (ok) toast(t('The music follows the light'));
 }
 function stopMusic() { Music.stop(); soundLabel(); }
 if (!Music.available) { $('musicSection').hidden = true; $('bSound').hidden = true; }
@@ -1355,10 +1520,10 @@ function snapshot() {
   composer.render();
   renderer.domElement.toBlob(blob => {
     resize();
-    if (!blob) { snapBusy = false; toast('Снимок не получился'); return; }
+    if (!blob) { snapBusy = false; toast(t('Snapshot failed')); return; }
     const name = 'prism-rail-' + P.seed + '.png';
-    downloads.save({ filename:name, data:blob }).then(() => toast('Снимок сохранён'))
-      .catch(e => { if (e && e.code !== 'declined') toast('Снимок не сохранён'); })
+    downloads.save({ filename:name, data:blob }).then(() => toast(t('Snapshot saved')))
+      .catch(e => { if (e && e.code !== 'declined') toast(t('Snapshot not saved')); })
       .finally(() => { snapBusy = false; });
   }, 'image/png');
 }
@@ -1409,7 +1574,7 @@ function frame(now) {
   bloom.strength = P.bloom;
   composer.render();
   fpsAcc += dt; fpsN++;
-  if (fpsAcc > 0.5) { $('fps').textContent = Math.round(fpsN / fpsAcc) + ' кадров/с'; fpsAcc = 0; fpsN = 0; }
+  if (fpsAcc > 0.5) { $('fps').textContent = Math.round(fpsN / fpsAcc) + t(' fps'); fpsAcc = 0; fpsN = 0; }
 }
 
 /* ================= boot ================= */
@@ -1442,7 +1607,7 @@ else requestAnimationFrame(t => { last = t; requestAnimationFrame(frame); });
 function embedApi() {
   let code = makeCode();
   const v3 = new THREE.Vector3();
-  function useScene(c) { if (c && c !== code) { if (!parseCode(c)) throw new Error('код сцены не распознан: ' + c); build(); code = c; } }
+  function useScene(c) { if (c && c !== code) { if (!parseCode(c)) throw new Error('scene code not recognized: ' + c); build(); code = c; } }
   function setSize(w, h) {
     if (renderer.domElement.width !== w || renderer.domElement.height !== h) {
       renderer.setPixelRatio(1); renderer.setSize(w, h, false);
