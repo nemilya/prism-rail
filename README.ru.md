@@ -75,6 +75,42 @@ make deploy                      # собрать и выложить rsync'ом
 
 `out/` и `dist/` — производное, в git их нет.
 
+## Выпуск ролика
+
+Полный выпуск ролика на одном языке (здесь `en`), затем сайт:
+
+```bash
+git pull
+make voice FILM=refraction LANGS=en    # озвучка (OPENROUTER_API_KEY, платно) → video/films/refraction/voice/en.{json,m4a,vtt}
+#   прослушать voice/en.m4a; плохая сцена: node video/scripts/video-voice.mjs refraction en --redo <сцена>
+#   закоммитить video/films/refraction/voice/en.{json,m4a,vtt}
+make video FILM=refraction LANGS=en    # MP4 → out/refraction/ (~1 ч без видеокарты)
+make web FILM=refraction LANGS=en      # лёгкая версия → out/refraction/web/refraction-en.{mp4,jpg,vtt}
+make dist                              # сайт → dist/; make preview — проверить, make deploy — выложить
+```
+
+- **`make voice` — всегда с `LANGS`.** Кеш озвученных реплик (`voice/clips/`) не в git, поэтому без `LANGS`
+  все языки синтезируются заново — и оплачиваются заново.
+- **Без озвучки** ролик выходит без звука, а таймлайн (и главы на «О проекте») идёт по оценке длины реплик;
+  после `make voice` всё пересчитывается само.
+- **`make web` обязателен перед `make dist`:** сайт берёт ролики только из
+  `out/refraction/web/refraction-<lang>.{mp4,jpg}`; без них «О проекте» на этом языке показывает живой плеер
+  (`make dist` об этом предупреждает).
+- `make video` / `make web` без `LANGS` — все языки ролика.
+
+Что перезапускать после правки:
+
+| что поменялось | что запускать |
+|---|---|
+| реплики диалога (`voice` в `video/films/<id>/i18n.js`) | `make voice` для **этого** языка → `make video` → `make web` → `make dist` (тест падает, пока озвучка не совпадёт с текстом) |
+| подписи в кадре, чертежи, сцены (`i18n.js` без `voice`, `film.js`, `video/lib/`) | `make video` → `make web` → `make dist` для всех затронутых языков, озвучка не нужна |
+| голос или манера (`video/voice.config.json`) | `make voice` для этого языка → `make video` → `make web` → `make dist` |
+| тексты сайта (`site/`), симулятор (`sim/`) | `make test` → `make dist` |
+| новый язык | чек-лист в [`docs/i18n.md`](docs/i18n.md), затем полный выпуск выше с `LANGS=<код>` |
+
+Перед всем этим — `make test`; при правках ролика ещё `make stills FILM=refraction LANGS=<код> T=10,60,120` —
+посмотреть длинные подписи на чертежах.
+
 ## Выкладка
 
 `make dist` собирает в `dist/` всё, что нужно браузеру: симулятор и «О проекте» на английском в корне и на
